@@ -28,3 +28,5 @@ src/Backend/**/*.csproj.user
 
 # Local files
 information.txt
+ChimeHTML/
+health-diet-app.html
