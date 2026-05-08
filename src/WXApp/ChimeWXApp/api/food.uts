@@ -1,0 +1,140 @@
+import { request, type ApiResponse } from './request'
+
+export interface FoodSuggestItem {
+	id: number
+	foodName: string
+	aliasName: string | null
+	cateId: number
+	energy: number
+	protein: number
+	fat: number
+	carbohydrate: number
+	dietaryFiber: number
+	sodium: number
+	calcium: number
+	iron: number
+	vitaminC: number
+}
+
+export function searchFoods(keyword: string, pageSize: number = 20): Promise<ApiResponse<any>> {
+	return request<ApiResponse<any>>({
+		url: '/api/foods',
+		method: 'GET',
+		data: { keyword, page: 1, pageSize }
+	})
+}
+
+export interface AddFoodItem {
+	foodId: number | null
+	foodName: string
+	categoryId: number | null
+	categoryName: string | null
+	weight: number
+	energy: number
+	protein: number
+	fat: number
+	carbohydrate: number
+	iron: number
+	sodium: number
+}
+
+export interface AddFoodRecordRequest {
+	recordDate: string
+	mealType: number
+	foods: AddFoodItem[]
+	photoUrl: string | null
+	photoLocalPath: string | null
+	remark: string | null
+}
+
+export function addFoodRecord(data: AddFoodRecordRequest): Promise<ApiResponse<any>> {
+	return request<ApiResponse<any>>({
+		url: '/api/food-records',
+		method: 'POST',
+		data
+	})
+}
+
+// 获取食物记录列表
+export interface FoodItemRecord {
+	id: number
+	foodId: number | null
+	foodName: string
+	categoryId: number | null
+	categoryName: string | null
+	weight: number
+	calories: number
+	protein: number
+	fat: number
+	carbohydrate: number
+	iron: number | null
+	sodium: number | null
+	price: number | null
+	energyPer100g: number | null
+	proteinPer100g: number | null
+	fatPer100g: number | null
+	carbohydratePer100g: number | null
+	ironPer100g: number | null
+	sodiumPer100g: number | null
+}
+
+export interface FoodRecordResponse {
+	id: number
+	recordDate: string
+	mealType: number
+	foods: FoodItemRecord[]
+	photoUrl: string | null
+}
+
+export function getFoodRecords(startDate: string, endDate: string, mealType?: number): Promise<ApiResponse<any>> {
+	let url = `/api/food-records?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&page=1&pageSize=50`
+	if (mealType !== undefined && mealType !== null && !isNaN(mealType)) {
+		url += `&mealType=${mealType}`
+	}
+	return request<ApiResponse<any>>({
+		url,
+		method: 'GET'
+	})
+}
+
+export interface UpdateFoodRecordRequest {
+	foodName: string
+	weight: number
+	energy: number
+	protein: number
+	fat: number
+	carbohydrate: number
+	remark: string | null
+}
+
+export function updateFoodRecord(id: number, data: UpdateFoodRecordRequest): Promise<ApiResponse<any>> {
+	return request<ApiResponse<any>>({
+		url: `/api/food-records/${id}`,
+		method: 'PUT',
+		data
+	})
+}
+
+export function deleteFoodRecord(id: number): Promise<ApiResponse<any>> {
+	return request<ApiResponse<any>>({
+		url: `/api/food-records/${id}`,
+		method: 'DELETE'
+	})
+}
+
+export interface ReplaceFoodRecordRequest {
+	recordDate: string
+	mealType: number
+	foods: AddFoodItem[]
+	photoUrl: string | null
+	photoLocalPath: string | null
+	remark: string | null
+}
+
+export function replaceFoodRecords(data: ReplaceFoodRecordRequest): Promise<ApiResponse<any>> {
+	return request<ApiResponse<any>>({
+		url: '/api/food-records/replace',
+		method: 'PUT',
+		data
+	})
+}

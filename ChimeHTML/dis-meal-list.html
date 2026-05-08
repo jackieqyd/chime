@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriLife - 饮食记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    #page-dis-meal-list { display: flex !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="page-dis-meal-list" class="page" style="background:#f0fdf4;">
+    <div style="background:linear-gradient(135deg,#065f46,#059669);padding:50px 20px 20px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+        <div id="dis-meal-list-back-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <i data-lucide="arrow-left" style="width:18px;height:18px;color:white;"></i>
+        </div>
+        <h2 style="color:white;font-size:18px;font-weight:800;" id="dis-meal-list-title">饮食记录</h2>
+      </div>
+      <p style="color:rgba(255,255,255,0.7);font-size:12px;" id="dis-meal-list-subtitle">今天 · 共840 kcal</p>
+    </div>
+
+    <div class="scroll-content" style="padding:16px;" id="dis-meal-list-content">
+    </div>
+  </div>
+
+  <div id="img-viewer-overlay">
+    <div id="img-viewer-close" style="position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <img id="img-viewer-img" src="" alt="">
+    <p id="img-viewer-caption" style="color:white;margin-top:16px;font-size:14px;text-align:center;"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  const content = document.getElementById('dis-meal-list-content');
+  if (content) {
+    content.innerHTML = `
+      <div style="background:white;border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 2px 12px rgba(5,150,105,0.08);">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:10px;">今日汇总</div>
+        <div style="display:flex;justify-content:space-around;">
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:#059669;">840</div><div style="font-size:10px;color:#9ca3af;">kcal</div></div>
+          <div style="width:1px;background:#e5e7eb;"></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:#fbbf24;">98g</div><div style="font-size:10px;color:#9ca3af;">碳水</div></div>
+          <div style="width:1px;background:#e5e7eb;"></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:#3b82f6;">45g</div><div style="font-size:10px;color:#9ca3af;">蛋白质</div></div>
+          <div style="width:1px;background:#e5e7eb;"></div>
+          <div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:#a855f7;">22g</div><div style="font-size:10px;color:#9ca3af;">脂肪</div></div>
+        </div>
+      </div>
+      <div class="dis-card" style="padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌅</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:14px;font-weight:700;color:#1f2937;">早餐</span>
+            <span style="font-size:13px;font-weight:700;color:#059669;">320 kcal</span>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">07:30 · 燕麦粥、鸡蛋、牛奶</div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <span style="background:#f0fdf4;color:#059669;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 42g</span>
+            <span style="background:#eff6ff;color:#3b82f6;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 18g</span>
+            <span style="background:#fdf4ff;color:#a855f7;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 8g</span>
+          </div>
+        </div>
+      </div>
+      <div class="dis-card" style="padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">☀️</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:14px;font-weight:700;color:#1f2937;">午餐</span>
+            <span style="font-size:13px;font-weight:700;color:#059669;">380 kcal</span>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">12:15 · 糙米饭、清蒸鱼、西兰花、番茄蛋汤</div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <span style="background:#f0fdf4;color:#059669;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 38g</span>
+            <span style="background:#eff6ff;color:#3b82f6;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 22g</span>
+            <span style="background:#fdf4ff;color:#a855f7;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 10g</span>
+          </div>
+        </div>
+      </div>
+      <div class="dis-card" style="padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🍎</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:14px;font-weight:700;color:#1f2937;">加餐</span>
+            <span style="font-size:13px;font-weight:700;color:#059669;">140 kcal</span>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">15:30 · 苹果、坚果</div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <span style="background:#f0fdf4;color:#059669;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 18g</span>
+            <span style="background:#eff6ff;color:#3b82f6;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 5g</span>
+            <span style="background:#fdf4ff;color:#a855f7;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 4g</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('dis-meal-list-back-btn')?.addEventListener('click', function() {
+    const history = JSON.parse(localStorage.getItem('chime_history') || '["dis-home"]');
+    history.pop();
+    const prev = history[history.length - 1] || 'dis-home';
+    localStorage.setItem('chime_history', JSON.stringify(history));
+    window.location.href = prev + '.html';
+  });
+});
+</script>
+</body>
+</html>

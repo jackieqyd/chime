@@ -1,0 +1,388 @@
+<template>
+	<view class="container">
+		<!-- 顶部导航 -->
+		<view class="nav-bar">
+			<text class="nav-title">舌尖账本</text>
+			<view class="user-info" @click="handleUserClick">
+				<text class="user-name">{{ userInfo?.nickname || '用户' + userInfo?.id }}</text>
+			</view>
+		</view>
+
+		<!-- 今日饮食概览 -->
+		<view class="section">
+			<text class="section-title">今日饮食概览</text>
+
+			<!-- 热量进度卡片 -->
+			<view class="calorie-card">
+				<view class="calorie-ring-container">
+					<view class="calorie-ring">
+						<!-- 进度环使用渐变背景模拟 -->
+						<view class="ring-bg"></view>
+						<view class="ring-progress" :style="{ width: caloriePercent + '%' }"></view>
+						<view class="ring-center">
+							<text class="calorie-percent">{{ caloriePercent }}%</text>
+							<text class="calorie-label">完成</text>
+						</view>
+					</view>
+				</view>
+				<view class="calorie-info">
+					<view class="calorie-row">
+						<text class="calorie-current">{{ currentCalorie }}</text>
+						<text class="calorie-separator">/</text>
+						<text class="calorie-target">{{ targetCalorie }} kcal</text>
+					</view>
+					<text class="calorie-remaining">{{ remainingCalorie }} kcal 剩余</text>
+				</view>
+			</view>
+
+			<!-- 营养成分小计 -->
+			<view class="nutrition-row">
+				<view class="nutrition-item">
+					<text class="nutrition-value">{{ protein }}g</text>
+					<text class="nutrition-label">蛋白质</text>
+				</view>
+				<view class="nutrition-item">
+					<text class="nutrition-value">{{ carbs }}g</text>
+					<text class="nutrition-label">碳水</text>
+				</view>
+				<view class="nutrition-item">
+					<text class="nutrition-value">{{ fat }}g</text>
+					<text class="nutrition-label">脂肪</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 今日摄入 -->
+		<view class="section">
+			<text class="section-title">今日摄入</text>
+			<view class="meal-grid">
+				<view class="meal-card" v-for="meal in meals" :key="meal.type" @click="handleMealClick(meal.type)">
+					<text class="meal-icon">{{ meal.icon }}</text>
+					<text class="meal-name">{{ meal.name }}</text>
+					<text class="meal-calorie">{{ meal.calorie }} kcal</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 快速操作 -->
+		<view class="section">
+			<view class="action-card" @click="handleSearchFood">
+				<text class="action-icon">🔍</text>
+				<text class="action-text">搜索食物记录今日饮食</text>
+				<text class="action-arrow">›</text>
+			</view>
+		</view>
+
+		<!-- 退出登录 -->
+		<view class="logout-section">
+			<button type="warn" size="mini" @click="handleLogout">退出登录</button>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { getUserInfo, clearAuthData } from '@/api/auth.uts'
+import { round } from '@/api/number.uts'
+
+interface UserInfo {
+	id: number
+	nickname: string | null
+	avatar: string | null
+	versionMode: number
+}
+
+interface Meal {
+	type: number
+	name: string
+	icon: string
+	calorie: number
+}
+
+const userInfo = ref<UserInfo | null>(null)
+
+// 模拟数据 - 实际应从API获取
+const currentCalorie = ref(1200)
+const targetCalorie = ref(1600)
+const protein = ref(45)
+const carbs = ref(150)
+const fat = ref(40)
+
+const meals = ref<Meal[]>([
+	{ type: 1, name: '早餐', icon: '🌅', calorie: 400 },
+	{ type: 2, name: '午餐', icon: '🌞', calorie: 500 },
+	{ type: 3, name: '晚餐', icon: '🌙', calorie: 300 },
+	{ type: 4, name: '加餐', icon: '🍎', calorie: 0 }
+])
+
+const caloriePercent = computed(() => Math.round((currentCalorie.value / targetCalorie.value) * 100))
+const remainingCalorie = computed(() => Math.max(0, targetCalorie.value - currentCalorie.value))
+
+onShow(() => {
+	userInfo.value = getUserInfo()
+})
+
+function handleUserClick() {
+	console.log('点击用户信息')
+}
+
+function handleMealClick(mealType: number) {
+	console.log('点击餐食类型:', mealType)
+	// TODO: 跳转到添加食物页面
+}
+
+function handleSearchFood() {
+	console.log('搜索食物')
+	// TODO: 跳转到搜索页面
+}
+
+function handleLogout() {
+	clearAuthData()
+	uni.redirectTo({
+		url: '/pages/login/login'
+	})
+}
+</script>
+
+<style>
+/* 页面背景 */
+.container {
+	background-color: #F0FDF4;
+	min-height: 100vh;
+	padding-bottom: 40rpx;
+}
+
+/* 顶部导航 */
+.nav-bar {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding: 24rpx 32rpx;
+	background-color: #FFFFFF;
+	shadow-color: #000;
+	shadow-offset: 0 2rpx 8rpx;
+	shadow-opacity: 0.05;
+	shadow-radius: 8rpx;
+}
+
+.nav-title {
+	font-size: 36rpx;
+	font-weight: bold;
+	color: #15803D;
+}
+
+.user-info {
+	flex-direction: row;
+	align-items: center;
+}
+
+.user-name {
+	font-size: 28rpx;
+	color: #1F2937;
+}
+
+/* 区块 */
+.section {
+	padding: 24rpx 32rpx;
+}
+
+.section-title {
+	font-size: 32rpx;
+	font-weight: 600;
+	color: #1F2937;
+	margin-bottom: 24rpx;
+}
+
+/* 热量卡片 */
+.calorie-card {
+	background-color: #FFFFFF;
+	border-radius: 16rpx;
+	padding: 32rpx;
+	margin-bottom: 24rpx;
+	shadow-color: #000;
+	shadow-offset: 0 2rpx 8rpx;
+	shadow-opacity: 0.08;
+	shadow-radius: 16rpx;
+	flex-direction: row;
+	align-items: center;
+}
+
+.calorie-ring-container {
+	margin-right: 32rpx;
+}
+
+.calorie-ring {
+	width: 200rpx;
+	height: 200rpx;
+	border-radius: 100rpx;
+	background-color: #E5E7EB;
+	position: relative;
+	overflow: hidden;
+	align-items: center;
+	justify-content: center;
+}
+
+.ring-bg {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: #E5E7EB;
+}
+
+.ring-progress {
+	position: absolute;
+	height: 100%;
+	background-color: #22C55E;
+	border-radius: 100rpx;
+}
+
+.ring-center {
+	position: absolute;
+	align-items: center;
+	justify-content: center;
+}
+
+.calorie-percent {
+	font-size: 48rpx;
+	font-weight: bold;
+	color: #22C55E;
+}
+
+.calorie-label {
+	font-size: 22rpx;
+	color: #6B7280;
+}
+
+.calorie-info {
+	flex: 1;
+}
+
+.calorie-row {
+	flex-direction: row;
+	align-items: baseline;
+	margin-bottom: 8rpx;
+}
+
+.calorie-current {
+	font-size: 56rpx;
+	font-weight: bold;
+	color: #1F2937;
+}
+
+.calorie-separator {
+	font-size: 32rpx;
+	color: #9CA3AF;
+	margin: 0 8rpx;
+}
+
+.calorie-target {
+	font-size: 28rpx;
+	color: #6B7280;
+}
+
+.calorie-remaining {
+	font-size: 24rpx;
+	color: #22C55E;
+}
+
+/* 营养成分 */
+.nutrition-row {
+	flex-direction: row;
+	justify-content: space-between;
+	background-color: #FFFFFF;
+	border-radius: 16rpx;
+	padding: 24rpx;
+	shadow-color: #000;
+	shadow-offset: 0 2rpx 8rpx;
+	shadow-opacity: 0.08;
+	shadow-radius: 16rpx;
+}
+
+.nutrition-item {
+	align-items: center;
+	flex: 1;
+}
+
+.nutrition-value {
+	font-size: 32rpx;
+	font-weight: 600;
+	color: #1F2937;
+	margin-bottom: 4rpx;
+}
+
+.nutrition-label {
+	font-size: 22rpx;
+	color: #6B7280;
+}
+
+/* 餐食网格 */
+.meal-grid {
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.meal-card {
+	width: 48%;
+	background-color: #FFFFFF;
+	border-radius: 12rpx;
+	padding: 24rpx;
+	margin-bottom: 16rpx;
+	align-items: center;
+	shadow-color: #000;
+	shadow-offset: 0 2rpx 8rpx;
+	shadow-opacity: 0.08;
+	shadow-radius: 12rpx;
+}
+
+.meal-icon {
+	font-size: 48rpx;
+	margin-bottom: 8rpx;
+}
+
+.meal-name {
+	font-size: 28rpx;
+	font-weight: 500;
+	color: #1F2937;
+	margin-bottom: 4rpx;
+}
+
+.meal-calorie {
+	font-size: 24rpx;
+	color: #6B7280;
+}
+
+/* 操作卡片 */
+.action-card {
+	flex-direction: row;
+	align-items: center;
+	background-color: #FFFFFF;
+	border-radius: 16rpx;
+	padding: 32rpx;
+	shadow-color: #000;
+	shadow-offset: 0 2rpx 8rpx;
+	shadow-opacity: 0.08;
+	shadow-radius: 16rpx;
+}
+
+.action-icon {
+	font-size: 40rpx;
+	margin-right: 16rpx;
+}
+
+.action-text {
+	flex: 1;
+	font-size: 28rpx;
+	color: #1F2937;
+}
+
+.action-arrow {
+	font-size: 40rpx;
+	color: #9CA3AF;
+}
+
+/* 退出登录 */
+.logout-section {
+	padding: 40rpx 32rpx;
+	align-items: center;
+}
+</style>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriLife - 摄入详情</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <!-- ===== MEAL DETAIL ===== -->
+  <div id="page-meal-detail" style="display:flex;flex-direction:column;height:100vh;background:#f8fafc;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#065f46,#059669);padding:50px 20px 24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div id="meal-detail-back-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <i data-lucide="arrow-left" style="width:18px;height:18px;color:white;"></i>
+        </div>
+        <h2 style="color:white;font-size:18px;font-weight:800;" id="meal-detail-title">早餐详情</h2>
+      </div>
+
+      <!-- Total info -->
+      <div style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);border-radius:16px;padding:14px;">
+        <div style="display:flex;justify-content:space-around;">
+          <div style="text-align:center;">
+            <div style="color:rgba(255,255,255,0.7);font-size:10px;">总热量</div>
+            <div style="color:#fbbf24;font-size:20px;font-weight:800;" id="meal-detail-kcal">320</div>
+            <div style="color:rgba(255,255,255,0.7);font-size:10px;">kcal</div>
+          </div>
+          <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
+          <div style="text-align:center;">
+            <div style="color:rgba(255,255,255,0.7);font-size:10px;">碳水</div>
+            <div style="color:white;font-size:20px;font-weight:800;" id="meal-detail-carb">42g</div>
+          </div>
+          <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
+          <div style="text-align:center;">
+            <div style="color:rgba(255,255,255,0.7);font-size:10px;">蛋白质</div>
+            <div style="color:white;font-size:20px;font-weight:800;" id="meal-detail-prot">18g</div>
+          </div>
+          <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
+          <div style="text-align:center;">
+            <div style="color:rgba(255,255,255,0.7);font-size:10px;">脂肪</div>
+            <div style="color:white;font-size:20px;font-weight:800;" id="meal-detail-fat">8g</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-content" style="padding:16px;padding-bottom:24px;" id="meal-food-list">
+    </div>
+  </div>
+
+  <!-- Image Viewer -->
+  <div id="img-viewer-overlay">
+    <div id="img-viewer-close" style="position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <img id="img-viewer-img" src="" alt="">
+    <p id="img-viewer-caption" style="color:white;margin-top:16px;font-size:14px;text-align:center;"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  const mealKey = localStorage.getItem('chime_meal') || 'breakfast';
+  buildMealDetail(mealKey);
+
+  document.getElementById('meal-detail-back-btn')?.addEventListener('click', function() {
+    window.location.href = 'dis-home.html';
+  });
+});
+</script>
+</body>
+</html>

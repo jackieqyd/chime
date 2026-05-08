@@ -1,0 +1,282 @@
+<template>
+	<view class="page">
+		<!-- 装饰彩纸 -->
+		<view class="confetti conf-1"></view>
+		<view class="confetti conf-2"></view>
+		<view class="confetti conf-3"></view>
+
+		<!-- ===== Header ===== -->
+		<view class="header">
+			<view class="header-deco deco-1"></view>
+			<view class="header-deco deco-2"></view>
+
+			<!-- 版本切换 -->
+			<view class="header-top">
+				<view class="toggle-btn" @click="switchToDiscipline">
+					<view class="toggle-icon">🔀</view>
+					<view class="toggle-text">自律版</view>
+				</view>
+			</view>
+
+			<!-- 问候 -->
+			<view class="header-main">
+				<view class="greeting">
+					<view class="greeting-date">今天也要元气满满！</view>
+					<view class="greeting-text">嗨，小绿 🌈</view>
+				</view>
+				<view class="header-emoji">🎀</view>
+			</view>
+		</view>
+
+		<!-- ===== 滚动内容 ===== -->
+		<scroll-view class="scroll-content" scroll-y="true">
+			<!-- 饮食记录标题 -->
+			<view class="section-header">
+				<view class="section-title">今天吃了啥？🍽️</view>
+				<view class="section-badge">Day 7 🎉</view>
+			</view>
+
+			<!-- 早餐卡片 -->
+			<view class="meal-card">
+				<view class="meal-row">
+					<view class="meal-icon meal-icon-morning">🌅</view>
+					<view class="meal-body">
+						<view class="meal-header">
+							<view class="meal-info">
+								<view class="meal-name">早餐</view>
+								<view class="meal-time">07:30</view>
+							</view>
+							<view class="meal-status meal-status-done">✓ 已记录</view>
+						</view>
+						<view class="meal-images">
+							<view class="meal-thumb meal-thumb-yellow"></view>
+							<view class="meal-thumb meal-thumb-yellow"></view>
+							<view class="meal-thumb meal-thumb-yellow"></view>
+							<view class="meal-thumb meal-thumb-yellow"></view>
+						</view>
+						<view class="meal-desc">燕麦粥 · 鸡蛋 · 牛奶</view>
+						<view class="meal-action" @click="goMealDetail">
+							<view class="action-btn action-btn-yellow">查看详情 ›</view>
+						</view>
+					</view>
+				</view>
+			</view>
+
+			<!-- 午餐卡片 -->
+			<view class="meal-card">
+				<view class="meal-row">
+					<view class="meal-icon meal-icon-noon">☀️</view>
+					<view class="meal-body">
+						<view class="meal-header">
+							<view class="meal-info">
+								<view class="meal-name">午餐</view>
+								<view class="meal-time">12:00</view>
+							</view>
+							<view class="meal-status meal-status-done">✓ 已记录</view>
+						</view>
+						<view class="meal-images">
+							<view class="meal-thumb meal-thumb-green"></view>
+							<view class="meal-thumb meal-thumb-green"></view>
+							<view class="meal-thumb meal-thumb-green"></view>
+							<view class="meal-thumb meal-thumb-green"></view>
+						</view>
+						<view class="meal-desc">糙米饭 · 清蒸鱼 · 西兰花…</view>
+						<view class="meal-action" @click="goMealDetail">
+							<view class="action-btn action-btn-green">查看详情 ›</view>
+						</view>
+					</view>
+				</view>
+			</view>
+
+			<!-- 晚餐卡片（待录入） -->
+			<view class="meal-card meal-card-empty-dinner">
+				<view class="meal-row">
+					<view class="meal-icon meal-icon-empty-dusk">🌙</view>
+					<view class="meal-body">
+						<view class="meal-header">
+							<view class="meal-info">
+								<view class="meal-name-empty-dusk">晚餐</view>
+							</view>
+							<view class="meal-status meal-status-pending dusk-pending">待录入</view>
+						</view>
+						<view class="meal-desc-empty">还没有记录晚餐内容</view>
+						<view class="meal-action" @click="goEntry">
+							<view class="action-btn action-btn-purple">+ 记录晚餐</view>
+						</view>
+					</view>
+				</view>
+			</view>
+
+			<!-- 加餐卡片（待录入） -->
+			<view class="meal-card meal-card-empty-snack">
+				<view class="meal-row">
+					<view class="meal-icon meal-icon-empty-snack">🍎</view>
+					<view class="meal-body">
+						<view class="meal-header">
+							<view class="meal-info">
+								<view class="meal-name-empty-snack">加餐</view>
+							</view>
+							<view class="meal-status meal-status-pending snack-pending">待录入</view>
+						</view>
+						<view class="meal-desc-empty">记录加餐让营养更完整哦～</view>
+						<view class="meal-action" @click="goEntry">
+							<view class="action-btn action-btn-orange">+ 记录加餐</view>
+						</view>
+					</view>
+				</view>
+			</view>
+
+			<!-- 打卡日历 -->
+			<view class="calendar-card">
+				<view class="cal-header">
+					<view class="cal-title">打卡日历</view>
+					<view class="cal-nav">
+						<view class="cal-nav-btn" @click="prevMonth">‹</view>
+						<view class="cal-month">{{ calYear }}年{{ calMonth }}月</view>
+						<view class="cal-nav-btn" @click="nextMonth">›</view>
+					</view>
+				</view>
+
+				<!-- 星期头 -->
+				<view class="cal-weekdays">
+					<view class="cal-weekday">日</view>
+					<view class="cal-weekday">一</view>
+					<view class="cal-weekday">二</view>
+					<view class="cal-weekday">三</view>
+					<view class="cal-weekday">四</view>
+					<view class="cal-weekday">五</view>
+					<view class="cal-weekday">六</view>
+				</view>
+
+				<!-- 日期网格 -->
+				<view class="cal-grid">
+					<view v-for="(item, idx) in calDays" :key="idx"
+						class="cal-day"
+						:class="{ 'cal-day-filled': item.filled, 'cal-day-today': item.today }"
+						@click="showDateModal(item)">
+						<view class="cal-day-num">{{ item.day }}</view>
+					</view>
+				</view>
+
+				<!-- 图例 -->
+				<view class="cal-legend">
+					<view class="legend-item">
+						<view class="legend-dot legend-dot-filled"></view>
+						<view class="legend-text">已打卡</view>
+					</view>
+					<view class="legend-item">
+						<view class="legend-dot legend-dot-today"></view>
+						<view class="legend-text">今日</view>
+					</view>
+				</view>
+			</view>
+
+			<view style="height: 100rpx;"></view>
+		</scroll-view>
+
+		<!-- ===== 底部导航 ===== -->
+		<view class="bottom-nav">
+			<view class="nav-item"></view>
+			<view class="nav-item nav-center" @click="goEntry">
+				<view class="fab-btn">+</view>
+				<view class="nav-label nav-label-sub">录入</view>
+			</view>
+			<view class="nav-item">
+				<view class="nav-icon">👤</view>
+				<view class="nav-label">我的</view>
+			</view>
+		</view>
+
+		<!-- ===== 日期饮食弹窗 ===== -->
+		<view class="modal-overlay" v-if="modalVisible" @click="hideModal">
+			<view class="modal-sheet" @click.stop="">
+				<view class="modal-header">
+					<view class="modal-header-left">
+						<view class="modal-title">{{ modalTitle }}</view>
+						<view class="modal-sub">饮食记录</view>
+					</view>
+					<view class="modal-close" @click="hideModal">✕</view>
+				</view>
+				<view class="modal-body">
+					<view class="modal-empty">暂无记录</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { ref, computed } from 'vue'
+
+// ===== 日历数据 =====
+const now = new Date()
+const calYear = ref<number>(now.getFullYear())
+const calMonth = ref<number>(now.getMonth() + 1)
+const filledDates = new Set<string>()
+
+const calDays = computed(() => {
+	const year = calYear.value
+	const month = calMonth.value
+	const firstDay = new Date(year, month - 1, 1).getDay()
+	const daysInMonth = new Date(year, month, 0).getDate()
+	const today = new Date()
+
+	const result: UTSJSONObject[] = []
+	for (let i = 0; i < firstDay; i++) {
+		result.push({ day: '', filled: false, today: false } as UTSJSONObject)
+	}
+	for (let d = 1; d <= daysInMonth; d++) {
+		const isToday = year === today.getFullYear() && month === (today.getMonth() + 1) && d === today.getDate()
+		const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+		result.push({ day: String(d), filled: filledDates.has(dateKey), today: isToday } as UTSJSONObject)
+	}
+	return result
+})
+
+function prevMonth() {
+	if (calMonth.value === 1) {
+		calMonth.value = 12
+		calYear.value--
+	} else {
+		calMonth.value--
+	}
+}
+
+function nextMonth() {
+	if (calMonth.value === 12) {
+		calMonth.value = 1
+		calYear.value++
+	} else {
+		calMonth.value++
+	}
+}
+
+// ===== 弹窗 =====
+const modalVisible = ref(false)
+const modalTitle = ref('')
+
+function showDateModal(item: UTSJSONObject) {
+	if (!item.day) return
+	modalTitle.value = `${calMonth.value}月${item.day}日`
+	modalVisible.value = true
+}
+
+function hideModal() {
+	modalVisible.value = false
+}
+
+// ===== 导航 =====
+function switchToDiscipline() {
+	uni.redirectTo({ url: '/pages/SelfDiscipline/SelfDiscipline' })
+}
+
+function goMealDetail() {
+	uni.showToast({ title: '详情页开发中', icon: 'none' })
+}
+
+function goEntry() {
+	uni.showToast({ title: '录入页开发中', icon: 'none' })
+}
+</script>
+
+<style src="./MouthCrave.css"></style>

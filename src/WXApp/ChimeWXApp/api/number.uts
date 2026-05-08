@@ -1,0 +1,4 @@
+// 数值舍入工具函数
+export function round(value: number, decimals: number = 1): number {
+	return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}

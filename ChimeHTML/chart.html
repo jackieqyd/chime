@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriLife - 数据统计</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    #app {
+      width: 375px; height: 812px;
+      position: relative; overflow: hidden;
+      border-radius: 40px;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.1);
+      background: #fff;
+    }
+    .page {
+      display: flex; flex-direction: column;
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; overflow: hidden;
+    }
+    .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    .scroll-content::-webkit-scrollbar { display: none; }
+    .period-btn {
+      padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      color: #6b7280; background: #f3f4f6; cursor: pointer; transition: all 0.2s; border: none;
+    }
+    .period-btn.active { background: #059669; color: white; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="page-chart" class="page" style="background:#f0fdf4;">
+    <div style="background:linear-gradient(135deg,#065f46,#059669);padding:50px 20px 20px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div id="chart-back-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <i data-lucide="arrow-left" style="width:18px;height:18px;color:white;"></i>
+        </div>
+        <div>
+          <h2 style="color:white;font-size:18px;font-weight:800;">数据统计</h2>
+          <p style="color:rgba(255,255,255,0.7);font-size:12px;">健康趋势追踪</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;background:rgba(0,0,0,0.2);border-radius:12px;padding:4px;">
+        <button id="period-7d" class="period-btn active" style="flex:1;background:#fff;color:#059669;">近7天</button>
+        <button id="period-30d" class="period-btn" style="flex:1;">近1月</button>
+        <button id="period-180d" class="period-btn" style="flex:1;">近半年</button>
+      </div>
+    </div>
+
+    <div class="scroll-content" style="padding:16px 32px;">
+      <!-- Summary Cards -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 12px rgba(5,150,105,0.08);">
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;">平均热量</div>
+          <div style="font-size:20px;font-weight:800;color:#1f2937;margin-top:2px;">1,820</div>
+          <div style="font-size:10px;color:#059669;font-weight:600;">kcal/天</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+            <i data-lucide="trending-up" style="width:12px;height:12px;color:#059669;"></i>
+            <span style="font-size:10px;color:#059669;">较上周 +5%</span>
+          </div>
+        </div>
+        <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 12px rgba(5,150,105,0.08);">
+          <div style="font-size:10px;color:#9ca3af;font-weight:600;">达标天数</div>
+          <div style="font-size:20px;font-weight:800;color:#1f2937;margin-top:2px;">5/7</div>
+          <div style="font-size:10px;color:#fbbf24;font-weight:600;">天 (71%)</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+            <i data-lucide="award" style="width:12px;height:12px;color:#fbbf24;"></i>
+            <span style="font-size:10px;color:#fbbf24;">保持加油！</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:16px;padding:12px;margin-bottom:14px;box-shadow:0 2px 12px rgba(5,150,105,0.08);">
+        <p style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:8px;">数据类型</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="period-btn active" id="filter-all" style="background:#059669;color:white;">全部</button>
+          <button class="period-btn" id="filter-kcal">热量</button>
+          <button class="period-btn" id="filter-carb">碳水</button>
+          <button class="period-btn" id="filter-prot">蛋白</button>
+          <button class="period-btn" id="filter-fat">脂肪</button>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:16px;padding:12px;margin-bottom:14px;box-shadow:0 2px 12px rgba(5,150,105,0.08);">
+        <div style="height:200px;position:relative;">
+          <canvas id="nutrient-chart"></canvas>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 12px rgba(5,150,105,0.08);">
+        <p style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:10px;">每日明细</p>
+        <div id="daily-breakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Viewer -->
+  <div id="img-viewer-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;">
+    <div id="img-viewer-close" style="position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <img id="img-viewer-img" src="" alt="" style="max-width:340px;max-height:560px;border-radius:16px;object-fit:contain;">
+    <p id="img-viewer-caption" style="color:white;margin-top:16px;font-size:14px;text-align:center;"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  if(typeof lucide!=='undefined')lucide.createIcons();
+  setTimeout(function(){buildChart();},200);
+  buildDailyBreakdown();
+
+  document.getElementById('chart-back-btn')?.addEventListener('click',function(){
+    window.location.href='dis-home.html';
+  });
+
+  ['7d','30d','180d'].forEach(function(p){
+    document.getElementById('period-'+p)?.addEventListener('click',function(){
+      document.querySelectorAll('[id^="period-"]').forEach(function(b){b.classList.remove('active');b.style.background='#f3f4f6';b.style.color='#6b7280';});
+      this.classList.add('active');this.style.background='#fff';this.style.color='#059669';
+      AppState.currentChartPeriod=p;buildChart();
+    });
+  });
+
+  ['all'].forEach(function(f){
+    document.getElementById('filter-'+f)?.addEventListener('click',function(){
+      document.querySelectorAll('[id^="filter-"]').forEach(function(b){b.classList.remove('active');b.style.background='#f3f4f6';b.style.color='#6b7280';});
+      this.classList.add('active');this.style.background='#059669';this.style.color='white';
+      AppState.currentChartFilter=f;buildChart();
+    });
+  });
+  ['kcal','carb','prot','fat'].forEach(function(f){
+    document.getElementById('filter-'+f)?.addEventListener('click',function(){
+      document.querySelectorAll('[id^="filter-"]').forEach(function(b){b.classList.remove('active');b.style.background='#f3f4f6';b.style.color='#6b7280';});
+      this.classList.add('active');this.style.background='#059669';this.style.color='white';
+      AppState.currentChartFilter=f;buildChart();
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriLife - 自律版</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    #app {
+      width: 375px; height: 812px;
+      position: relative; overflow: hidden;
+      border-radius: 40px;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.1);
+      background: #fff;
+    }
+    .page {
+      display: flex; flex-direction: column;
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; overflow: hidden;
+    }
+    .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    .scroll-content::-webkit-scrollbar { display: none; }
+    .dis-bg { background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); }
+    .dis-header { background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%); }
+    .dis-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 20px rgba(5,150,105,0.08); }
+    @keyframes ripple {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .ripple-ring { animation: ripple 2s infinite ease-out; }
+    .ripple-ring2 { animation: ripple 2s 0.7s infinite ease-out; }
+    .fab-btn { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 4px 20px rgba(5,150,105,0.4); }
+    .version-toggle {
+      background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 20px;
+      padding: 4px 10px; cursor: pointer; transition: all 0.3s;
+    }
+    .nav-item.active .nav-icon { color: #059669; }
+    .nav-item.active .nav-label { color: #059669; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="page-dis-home" class="page dis-bg">
+    <!-- Header -->
+    <div class="dis-header" style="padding:44px 20px 20px;flex-shrink:0;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.1);border-radius:50%;"></div>
+      <div style="position:absolute;bottom:-20px;right:60px;width:80px;height:80px;background:rgba(255,255,255,0.07);border-radius:50%;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div id="dis-toggle-btn" class="version-toggle" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <i data-lucide="shuffle" style="width:13px;height:13px;color:white;"></i>
+          <span style="color:white;font-size:11px;font-weight:600;">欢乐版</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+        <div>
+          <p style="color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;" id="dis-date-text">今天是好日子</p>
+          <h2 style="color:white;font-size:20px;font-weight:800;margin-top:2px;" id="dis-greeting">早安，小绿 👋</h2>
+        </div>
+        <div style="text-align:right;">
+          <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:5px 10px;backdrop-filter:blur(8px);">
+            <span style="color:#fbbf24;font-size:10px;font-weight:700;">🔥 连续打卡</span>
+            <div style="color:white;font-size:14px;font-weight:800;">7 天</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:16px;align-items:center;">
+        <div style="position:relative;width:90px;height:90px;flex-shrink:0;">
+          <div class="ripple-ring" style="position:absolute;inset:-8px;border:2px solid rgba(255,255,255,0.2);border-radius:50%;"></div>
+          <div class="ripple-ring2" style="position:absolute;inset:-4px;border:2px solid rgba(255,255,255,0.15);border-radius:50%;"></div>
+          <svg width="90" height="90" viewBox="0 0 90 90" style="position:absolute;top:0;left:0;">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+            <circle cx="45" cy="45" r="38" fill="none" stroke="#fbbf24" stroke-width="6" stroke-dasharray="239" stroke-dashoffset="112" stroke-linecap="round" transform="rotate(-90 45 45)"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <span style="color:white;font-size:16px;font-weight:800;">53%</span>
+            <span style="color:rgba(255,255,255,0.7);font-size:8px;font-weight:500;">已摄入</span>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);border-radius:12px;padding:10px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><div style="color:rgba(255,255,255,0.7);font-size:10px;">已摄入</div><div style="color:white;font-size:15px;font-weight:800;">1120 <span style="font-size:10px;font-weight:500;">kcal</span></div></div>
+              <div style="width:1px;height:30px;background:rgba(255,255,255,0.2);"></div>
+              <div><div style="color:rgba(255,255,255,0.7);font-size:10px;">目标</div><div style="color:#fbbf24;font-size:15px;font-weight:800;">2100 <span style="font-size:10px;font-weight:500;">kcal</span></div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:8px;padding:5px;text-align:center;">
+              <div style="color:rgba(255,255,255,0.7);font-size:8px;">碳水</div><div style="color:white;font-size:12px;font-weight:700;">130g</div>
+              <div style="background:rgba(255,255,255,0.3);border-radius:3px;height:3px;margin-top:3px;"><div style="background:#fbbf24;border-radius:3px;height:3px;width:62%;"></div></div>
+            </div>
+            <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:8px;padding:5px;text-align:center;">
+              <div style="color:rgba(255,255,255,0.7);font-size:8px;">蛋白质</div><div style="color:white;font-size:12px;font-weight:700;">59g</div>
+              <div style="background:rgba(255,255,255,0.3);border-radius:3px;height:3px;margin-top:3px;"><div style="background:#34d399;border-radius:3px;height:3px;width:48%;"></div></div>
+            </div>
+            <div style="flex:1;background:rgba(255,255,255,0.15);border-radius:8px;padding:5px;text-align:center;">
+              <div style="color:rgba(255,255,255,0.7);font-size:8px;">脂肪</div><div style="color:white;font-size:12px;font-weight:700;">28g</div>
+              <div style="background:rgba(255,255,255,0.3);border-radius:3px;height:3px;margin-top:3px;"><div style="background:#f9a8d4;border-radius:3px;height:3px;width:38%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="scroll-content" style="padding:12px 16px 80px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="font-size:15px;font-weight:700;color:#1f2937;">今日饮食记录</h3>
+        <span style="font-size:11px;color:#059669;font-weight:600;">共计 1120 kcal</span>
+      </div>
+      <div class="dis-card" id="breakfast-detail-btn" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌅</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:700;color:#1f2937;">早餐</span><span style="font-size:13px;font-weight:700;color:#059669;">320 kcal</span></div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">燕麦粥、鸡蛋、牛奶</div>
+          <div style="display:flex;gap:6px;margin-top:5px;">
+            <span style="background:#f0fdf4;color:#059669;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 42g</span>
+            <span style="background:#eff6ff;color:#3b82f6;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 18g</span>
+            <span style="background:#fdf4ff;color:#a855f7;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 8g</span>
+          </div>
+        </div>
+        <div style="width:32px;height:32px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i data-lucide="chevron-right" style="width:16px;height:16px;color:#059669;"></i>
+        </div>
+      </div>
+      <div class="dis-card" id="lunch-detail-btn" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">☀️</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:700;color:#1f2937;">午餐</span><span style="font-size:13px;font-weight:700;color:#059669;">380 kcal</span></div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">糙米饭、清蒸鱼、西兰花</div>
+          <div style="display:flex;gap:6px;margin-top:5px;">
+            <span style="background:#f0fdf4;color:#059669;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 38g</span>
+            <span style="background:#eff6ff;color:#3b82f6;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 22g</span>
+            <span style="background:#fdf4ff;color:#a855f7;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 10g</span>
+          </div>
+        </div>
+        <div style="width:32px;height:32px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i data-lucide="chevron-right" style="width:16px;height:16px;color:#059669;"></i>
+        </div>
+      </div>
+      <div class="dis-card" id="dinner-add-btn" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;border:1.5px dashed #d1d5db;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#f3f4f6,#e5e7eb);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;opacity:0.6;">🌙</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:700;color:#9ca3af;">晚餐</span><span style="font-size:11px;color:#d1d5db;font-weight:500;">待录入</span></div>
+          <div style="font-size:11px;color:#d1d5db;margin-top:3px;">还未记录晚餐</div>
+          <div style="display:flex;gap:6px;margin-top:5px;">
+            <span style="background:#f3f4f6;color:#d1d5db;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 --g</span>
+            <span style="background:#f3f4f6;color:#d1d5db;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 --g</span>
+            <span style="background:#f3f4f6;color:#d1d5db;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 --g</span>
+          </div>
+        </div>
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #d1fae5;">
+          <i data-lucide="plus" style="width:16px;height:16px;color:#059669;"></i>
+        </div>
+      </div>
+      <div class="dis-card" id="snack-detail-btn" style="padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🍎</div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:700;color:#1f2937;">加餐</span><span style="font-size:13px;font-weight:700;color:#059669;">140 kcal</span></div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px;">苹果、坚果</div>
+          <div style="display:flex;gap:6px;margin-top:5px;"><span style="background:#f0fdf4;color:#059669;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">碳水 18g</span><span style="background:#eff6ff;color:#3b82f6;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">蛋白 5g</span><span style="background:#fdf4ff;color:#a855f7;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;">脂肪 4g</span></div>
+        </div>
+        <div style="width:32px;height:32px;background:#fff1f2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="chevron-right" style="width:16px;height:16px;color:#e11d48;"></i></div>
+      </div>
+
+      <!-- Calendar Component -->
+      <div class="dis-card" style="padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="font-size:14px;font-weight:700;color:#1f2937;">打卡日历</h3>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <i data-lucide="chevron-left" style="width:16px;height:16px;color:#6b7280;cursor:pointer;"></i>
+            <span style="font-size:12px;color:#6b7280;font-weight:600;" id="cal-month-label">2025年1月</span>
+            <i data-lucide="chevron-right" style="width:16px;height:16px;color:#6b7280;cursor:pointer;"></i>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">日</div>
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">一</div>
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">二</div>
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">三</div>
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">四</div>
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">五</div>
+          <div style="text-align:center;font-size:10px;color:#9ca3af;font-weight:600;">六</div>
+        </div>
+        <div id="calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+        <div style="display:flex;gap:14px;margin-top:10px;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#dcfce7;border:1.5px solid #22c55e;border-radius:4px;"></div><span style="font-size:10px;color:#6b7280;">已录入</span></div>
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;border:1.5px solid #fbbf24;border-radius:50%;"></div><span style="font-size:10px;color:#6b7280;">今日</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:72px;display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;background:white;border-top:1px solid #e7f5ee;box-shadow:0 -4px 20px rgba(0,0,0,0.06);flex-shrink:0;">
+      <div id="dis-nav-home" class="nav-item active" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+        <i data-lucide="bar-chart-2" class="nav-icon" style="width:22px;height:22px;color:#059669;"></i>
+        <span class="nav-label" style="font-size:10px;color:#059669;font-weight:600;">图表</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
+        <div id="dis-nav-add" class="fab-btn" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;position:absolute;top:-22px;"><i data-lucide="plus" style="width:26px;height:26px;color:white;"></i></div>
+        <span style="font-size:10px;color:#9ca3af;font-weight:500;margin-top:33px;">录入</span>
+      </div>
+      <div id="dis-nav-me" class="nav-item" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+        <i data-lucide="user" class="nav-icon" style="width:22px;height:22px;color:#9ca3af;"></i>
+        <span class="nav-label" style="font-size:10px;color:#9ca3af;">我的</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Meal Modal -->
+  <div id="dis-date-meal-modal" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;justify-content:flex-end;flex-direction:column;">
+    <div style="background:white;border-radius:24px 24px 0 0;padding:0;max-height:520px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="padding:16px 20px 12px;background:linear-gradient(135deg,#065f46,#059669);border-radius:24px 24px 0 0;flex-shrink:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><h3 style="font-size:16px;font-weight:800;color:white;" id="dis-date-meal-modal-title">1月15日</h3><p style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:1px;" id="dis-date-meal-modal-sub">今日饮食记录</p></div>
+          <div id="dis-date-meal-modal-close" style="width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+      </div>
+      <div style="overflow-y:auto;padding:14px 16px 24px;flex:1;" id="dis-date-meal-modal-content"></div>
+    </div>
+  </div>
+  <!-- Image Viewer -->
+  <div id="img-viewer-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;">
+    <div id="img-viewer-close" style="position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <img id="img-viewer-img" src="" alt="" style="max-width:340px;max-height:560px;border-radius:16px;object-fit:contain;">
+    <p id="img-viewer-caption" style="color:white;margin-top:16px;font-size:14px;text-align:center;"></p>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  if(typeof lucide!=='undefined')lucide.createIcons();
+  updateDateTime();buildCalendar();syncProfileToUI();
+  document.getElementById('dis-toggle-btn')?.addEventListener('click',function(){AppState.currentVersion='happy';AppState.saveVersion();window.location.href='happy-home.html';});
+  document.getElementById('dis-nav-home')?.addEventListener('click',function(){window.location.href='chart.html';});
+  document.getElementById('dis-nav-add')?.addEventListener('click',function(){window.location.href='entry.html';});
+  document.getElementById('dis-nav-me')?.addEventListener('click',function(){window.location.href='profile.html';});
+  document.getElementById('breakfast-detail-btn')?.addEventListener('click',function(){AppState.currentMealDetail='breakfast';AppState.saveMeal();window.location.href='meal-detail.html';});
+  document.getElementById('lunch-detail-btn')?.addEventListener('click',function(){AppState.currentMealDetail='lunch';AppState.saveMeal();window.location.href='meal-detail.html';});
+  document.getElementById('dinner-add-btn')?.addEventListener('click',function(){window.location.href='entry.html';});
+  document.getElementById('snack-detail-btn')?.addEventListener('click',function(){AppState.currentMealDetail='snack';AppState.saveMeal();window.location.href='meal-detail.html';});
+});
+</script>
+</body>
+</html>

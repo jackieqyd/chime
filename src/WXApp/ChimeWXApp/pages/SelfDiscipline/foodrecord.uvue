@@ -1,0 +1,567 @@
+<template>
+	<view class="page">
+		<!-- Header -->
+		<view class="page-header">
+			<view class="header-row">
+				<view class="back-btn" @click="goBack">
+					<text class="back-icon">‹</text>
+				</view>
+				<view class="header-title">
+					<text class="header-title-text">录入饮食数据</text>
+					<text class="header-date">{{ currentDate }}</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- Scroll Content -->
+		<scroll-view class="scroll-area" scroll-y="true">
+			<view class="scroll-inner">
+
+				<!-- Meal Type Selector -->
+				<view class="card meal-type-card" :class="{ 'meal-type-disabled': isEditMode }">
+					<text class="card-label">{{ isEditMode ? '餐次' : '选择餐次' }}</text>
+					<view class="meal-type-row">
+						<view
+							v-for="meal in mealTypes"
+							:key="meal.type"
+							class="meal-type-btn"
+							:class="{ 'meal-type-active': selectedMealType === meal.type, 'meal-type-btn-disabled': isEditMode && selectedMealType !== meal.type }"
+							@click="selectMealType(meal.type)"
+						>
+							<text class="meal-type-icon">{{ meal.icon }}</text>
+							<text class="meal-type-name" :class="{ 'meal-type-name-active': selectedMealType === meal.type }">{{ meal.name }}</text>
+						</view>
+					</view>
+				</view>
+
+				<!-- Food Input Form -->
+				<view class="card form-card">
+					<text class="card-label">手动输入食物</text>
+					<view class="form-row">
+						<view class="form-item form-item-name">
+							<text class="form-label">食物名称</text>
+							<input class="input-field" type="text" v-model="foodName" placeholder="如：鸡胸肉" @input="onFoodNameInput" @confirm="onFoodNameConfirm" />
+						</view>
+						<view class="form-item form-item-weight">
+							<text class="form-label">克重(g)</text>
+							<input class="input-field" type="number" v-model="foodWeight" placeholder="100" />
+						</view>
+					</view>
+
+					<view class="form-grid">
+						<view class="form-item">
+							<text class="form-label">热量 (kcal)</text>
+							<input class="input-field" type="number" v-model="foodKcal" placeholder="165" disabled />
+						</view>
+						<view class="form-item">
+							<text class="form-label">碳水 (g)</text>
+							<input class="input-field" type="number" v-model="foodCarb" placeholder="0" disabled />
+						</view>
+						<view class="form-item">
+							<text class="form-label">蛋白质 (g)</text>
+							<input class="input-field" type="number" v-model="foodProt" placeholder="31" disabled />
+						</view>
+						<view class="form-item">
+							<text class="form-label">脂肪 (g)</text>
+							<input class="input-field" type="number" v-model="foodFat" placeholder="3.6" disabled />
+						</view>
+					</view>
+					<view class="btn-add" @click="addFood">
+						<text class="btn-add-text">{{ addFoodBtnText }}</text>
+					</view>
+				</view>
+
+				<!-- Added Foods Preview -->
+				<view class="card added-card">
+					<view class="added-header">
+						<text class="card-label">已添加食物</text>
+						<text class="added-total">合计: {{ totalKcal }} kcal</text>
+					</view>
+					<view class="added-list">
+						<view v-if="addedFoods.length === 0" class="added-empty">
+							<text>还没有添加食物</text>
+						</view>
+						<view
+							v-for="(food, index) in addedFoods"
+							:key="index"
+							class="added-item"
+							@click="editFood(index)"
+						>
+							<view class="added-item-info">
+								<text class="added-item-name">{{ food.name }}</text>
+								<text class="added-item-detail">{{ food.weight }} · {{ food.kcal }} kcal</text>
+							</view>
+							<view class="added-item-tags">
+								<text class="tag tag-carb">碳水 {{ food.carb }}g</text>
+								<text class="tag tag-protein">蛋白 {{ food.prot }}g</text>
+								<text class="tag tag-fat">脂肪 {{ food.fat }}g</text>
+							</view>
+							<view class="added-item-delete" @click="removeFood(index)">
+								<text class="delete-icon">🗑️</text>
+							</view>
+						</view>
+					</view>
+				</view>
+
+				<!-- Submit Button -->
+				<view class="btn-submit" @click="submitEntry">
+					<text class="btn-submit-text">{{ submitBtnText }}</text>
+				</view>
+
+				<view style="height: 60rpx;"></view>
+			</view>
+		</scroll-view>
+
+		<!-- 搜索结果底部弹窗 -->
+		<view class="search-popup" v-if="showSearchPopup">
+			<view class="popup-mask" @click="closeSearchPopup"></view>
+			<view class="popup-content">
+				<view class="popup-header">
+					<text class="popup-title">选择食物</text>
+					<view class="popup-close" @click="closeSearchPopup">
+						<text>✕</text>
+					</view>
+				</view>
+				<scroll-view class="popup-list" scroll-y="true">
+					<view v-if="searchEmpty" class="popup-empty">
+						<text class="popup-empty-text">未发现该食物数据，请重新输入</text>
+					</view>
+					<view
+						v-for="item in searchResults"
+						:key="item.id"
+						class="popup-item"
+						@click="selectFromPopup(item)"
+					>
+						<view class="popup-item-info">
+							<text class="popup-item-name">{{ item.foodName }}</text>
+							<text class="popup-item-detail" v-if="item.aliasName">{{ item.aliasName }}</text>
+						</view>
+						<view class="popup-item-tags">
+							<text class="popup-tag">热量 {{ item.energy }}</text>
+							<text class="popup-tag">碳水 {{ item.carbohydrate }}g</text>
+							<text class="popup-tag">蛋白 {{ item.protein }}g</text>
+							<text class="popup-tag">脂肪 {{ item.fat }}g</text>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { ref, computed, watch, onMounted } from 'vue'
+import { searchFoods, addFoodRecord, replaceFoodRecords, getFoodRecords, deleteFoodRecord, type FoodSuggestItem } from '../../api/food'
+import { round } from '../../api/number'
+
+// 编辑模式状态
+const isEditMode = ref(false)
+const editModeMealType = ref<number | null>(null)
+const editModeDate = ref<string>('')
+
+const mealTypes = [
+	{ type: 'breakfast', name: '早餐', icon: '🌅' },
+	{ type: 'lunch', name: '午餐', icon: '☀️' },
+	{ type: 'dinner', name: '晚餐', icon: '🌙' },
+	{ type: 'snack', name: '加餐', icon: '🍎' }
+]
+
+const selectedMealType = ref('breakfast')
+
+const foodName = ref('')
+const foodWeight = ref('')
+const foodKcal = ref('')
+const foodCarb = ref('')
+const foodProt = ref('')
+const foodFat = ref('')
+
+// 存储每100g原始营养数据
+const per100gData = ref<FoodSuggestItem | null>(null)
+
+// 每100g原始营养数据（用于克重变化时重新计算）
+interface Per100gData {
+	energy: number
+	protein: number
+	fat: number
+	carbohydrate: number
+	iron: number
+	sodium: number
+}
+
+const per100gFromList = ref<Per100gData | null>(null)
+
+const addedFoods = ref<Array<{
+	recordId: number | null
+	name: string
+	weight: string
+	kcal: number
+	carb: string
+	prot: string
+	fat: string
+	foodId: number | null
+	categoryId: number | null
+	iron: number
+	sodium: number
+	energyPer100g: number
+	proteinPer100g: number
+	fatPer100g: number
+	carbPer100g: number
+	ironPer100g: number
+	sodiumPer100g: number
+}>>([])
+
+const showSuggest = ref(false)
+const suggestFoods = ref<FoodSuggestItem[]>([])
+const showSearchPopup = ref(false)
+const searchResults = ref<FoodSuggestItem[]>([])
+const searchEmpty = ref(false)
+let suggestTimer: number | null = null
+
+// 当前正在编辑的食物索引，-1表示新增模式
+const editingFoodIndex = ref(-1)
+
+// 添加/更新食物按钮文字
+const addFoodBtnText = computed(() => {
+	return editingFoodIndex.value >= 0 ? '更新食物' : '+ 添加食物'
+})
+
+function onFoodNameInput() {
+	if (suggestTimer !== null) {
+		clearTimeout(suggestTimer)
+	}
+	if (!foodName.value.trim()) {
+		showSuggest.value = false
+		suggestFoods.value = []
+		return
+	}
+	suggestTimer = setTimeout(async () => {
+		try {
+			const res = await searchFoods(foodName.value.trim(), 20)
+			if (res.code === 200 && res.data && res.data.items) {
+				searchResults.value = res.data.items
+				searchEmpty.value = res.data.items.length === 0
+				showSearchPopup.value = true
+			}
+		} catch (e) {
+			console.error('查询食物失败', e)
+		}
+	}, 300) as unknown as number
+}
+
+function onFoodNameConfirm() {
+	showSuggest.value = false
+}
+
+function closeSearchPopup() {
+	showSearchPopup.value = false
+	searchResults.value = []
+	searchEmpty.value = false
+}
+
+function selectFromPopup(item: FoodSuggestItem) {
+	foodName.value = item.foodName
+	per100gData.value = item
+	const weight = parseFloat(foodWeight.value) || 100
+	updateNutritionByWeight(weight)
+	closeSearchPopup()
+}
+
+function selectSuggest(item: FoodSuggestItem) {
+	foodName.value = item.foodName
+	per100gData.value = item
+	// 默认克重100g，直接使用原始数据
+	const weight = parseFloat(foodWeight.value) || 100
+	updateNutritionByWeight(weight)
+	showSuggest.value = false
+	suggestFoods.value = []
+}
+
+// 根据克重计算营养值
+function updateNutritionByWeight(weight: number) {
+	let energy = 0, protein = 0, fat = 0, carb = 0
+	if (per100gData.value) {
+		energy = per100gData.value.energy
+		protein = per100gData.value.protein
+		fat = per100gData.value.fat
+		carb = per100gData.value.carbohydrate
+	} else if (per100gFromList.value) {
+		energy = per100gFromList.value.energy
+		protein = per100gFromList.value.protein
+		fat = per100gFromList.value.fat
+		carb = per100gFromList.value.carbohydrate
+	} else {
+		return
+	}
+	const factor = weight / 100
+	foodKcal.value = round(energy * factor) + ''
+	foodCarb.value = round(carb * factor) + ''
+	foodProt.value = round(protein * factor) + ''
+	foodFat.value = round(fat * factor) + ''
+}
+
+// 监听克重变化，重新计算营养值
+watch(foodWeight, (newWeight) => {
+	if (!per100gData.value && !per100gFromList.value) return
+	const weight = parseFloat(newWeight) || 100
+	updateNutritionByWeight(weight)
+})
+
+const currentDate = computed(() => {
+	const now = new Date()
+	const month = now.getMonth() + 1
+	const day = now.getDate()
+	return `今天 · ${month}月${day}日`
+})
+
+const totalKcal = computed(() => {
+	const sum = addedFoods.value.reduce((sum, food) => sum + food.kcal, 0)
+	return Math.round(sum)
+})
+
+// 提交按钮文字
+const submitBtnText = '✓ 提交'
+
+onMounted(() => {
+	// 获取页面参数
+	const pages = getCurrentPages()
+	const currentPage = pages[pages.length - 1] as any
+	const options = currentPage.options || {}
+
+	if (options.mealType && options.date) {
+		// 编辑模式
+		isEditMode.value = true
+		editModeMealType.value = parseInt(options.mealType)
+		editModeDate.value = options.date
+		// 设置餐次选择器
+		const mealTypeMap: Record<number, string> = { 1: 'breakfast', 2: 'lunch', 3: 'dinner', 4: 'snack' }
+		selectedMealType.value = mealTypeMap[editModeMealType.value] || 'breakfast'
+		// 加载该餐次已有数据
+		loadEditModeData()
+	}
+})
+
+async function loadEditModeData() {
+	try {
+		const res = await getFoodRecords(editModeDate.value, editModeDate.value, editModeMealType.value!)
+		if (res.code === 200 && res.data && res.data.items) {
+			// 按餐次分组的数据，取第一组（因为同一天同餐次只有一条记录）
+			const record = res.data.items[0]
+			if (record && record.foods) {
+				addedFoods.value = record.foods.map((f: any) => ({
+					recordId: f.id,
+					name: f.foodName,
+					weight: f.weight + 'g',
+					kcal: f.calories,
+					carb: f.carbohydrate + '',
+					prot: f.protein + '',
+					fat: f.fat + '',
+					foodId: f.foodId,
+					categoryId: f.categoryId,
+					iron: f.iron || 0,
+					sodium: f.sodium || 0,
+					energyPer100g: f.energyPer100g || 0,
+					proteinPer100g: f.proteinPer100g || 0,
+					fatPer100g: f.fatPer100g || 0,
+					carbPer100g: f.carbohydratePer100g || 0,
+					ironPer100g: f.ironPer100g || 0,
+					sodiumPer100g: f.sodiumPer100g || 0
+				}))
+			}
+		}
+	} catch (e) {
+		console.error('加载数据失败', e)
+	}
+}
+
+function selectMealType(type: string) {
+	if (isEditMode.value) return // 编辑模式下禁止切换餐次
+	selectedMealType.value = type
+}
+
+function addFood() {
+	if (!foodName.value.trim()) {
+		uni.showToast({ title: '请输入食物名称', icon: 'none' })
+		return
+	}
+	const name = foodName.value.trim()
+	const weight = foodWeight.value || '100'
+
+	// 获取每100g原始数据（优先用搜索结果，否则用编辑时传入的数据）
+	const energyPer100g = per100gData.value?.energy || per100gFromList.value?.energy || 0
+	const proteinPer100g = per100gData.value?.protein || per100gFromList.value?.protein || 0
+	const fatPer100g = per100gData.value?.fat || per100gFromList.value?.fat || 0
+	const carbPer100g = per100gData.value?.carbohydrate || per100gFromList.value?.carbohydrate || 0
+	const ironPer100g = per100gData.value?.iron || per100gFromList.value?.iron || 0
+	const sodiumPer100g = per100gData.value?.sodium || per100gFromList.value?.sodium || 0
+
+	if (editingFoodIndex.value >= 0) {
+		// 更新模式：更新列表中对应项
+		const idx = editingFoodIndex.value
+		addedFoods.value[idx].name = name
+		addedFoods.value[idx].weight = weight + 'g'
+		addedFoods.value[idx].kcal = parseFloat(foodKcal.value) || 0
+		addedFoods.value[idx].carb = foodCarb.value || '0'
+		addedFoods.value[idx].prot = foodProt.value || '0'
+		addedFoods.value[idx].fat = foodFat.value || '0'
+		addedFoods.value[idx].foodId = per100gData.value?.id || addedFoods.value[idx].foodId
+		addedFoods.value[idx].categoryId = per100gData.value?.cateId || addedFoods.value[idx].categoryId
+		addedFoods.value[idx].iron = per100gData.value?.iron || addedFoods.value[idx].iron
+		addedFoods.value[idx].sodium = per100gData.value?.sodium || addedFoods.value[idx].sodium
+		addedFoods.value[idx].energyPer100g = energyPer100g
+		addedFoods.value[idx].proteinPer100g = proteinPer100g
+		addedFoods.value[idx].fatPer100g = fatPer100g
+		addedFoods.value[idx].carbPer100g = carbPer100g
+		addedFoods.value[idx].ironPer100g = ironPer100g
+		addedFoods.value[idx].sodiumPer100g = sodiumPer100g
+		uni.showToast({ title: `已更新 ${name}`, icon: 'none' })
+	} else {
+		// 新增模式
+		addedFoods.value.push({
+			recordId: null,
+			name: name,
+			weight: weight + 'g',
+			kcal: parseFloat(foodKcal.value) || 0,
+			carb: foodCarb.value || '0',
+			prot: foodProt.value || '0',
+			fat: foodFat.value || '0',
+			foodId: per100gData.value?.id || null,
+			categoryId: per100gData.value?.cateId || null,
+			iron: per100gData.value?.iron || 0,
+			sodium: per100gData.value?.sodium || 0,
+			energyPer100g: energyPer100g,
+			proteinPer100g: proteinPer100g,
+			fatPer100g: fatPer100g,
+			carbPer100g: carbPer100g,
+			ironPer100g: ironPer100g,
+			sodiumPer100g: sodiumPer100g
+		})
+		uni.showToast({ title: `已添加 ${name}`, icon: 'none' })
+	}
+
+	// 清空表单
+	foodName.value = ''
+	foodWeight.value = ''
+	foodKcal.value = ''
+	foodCarb.value = ''
+	foodProt.value = ''
+	foodFat.value = ''
+	per100gData.value = null
+	per100gFromList.value = null
+	editingFoodIndex.value = -1
+}
+
+// 点击已添加食物列表中的某一项，填充到表单进行编辑
+function editFood(index: number) {
+	const food = addedFoods.value[index]
+	foodName.value = food.name
+	foodWeight.value = food.weight.replace('g', '')
+	foodKcal.value = food.kcal + ''
+	foodCarb.value = food.carb
+	foodProt.value = food.prot
+	foodFat.value = food.fat
+	editingFoodIndex.value = index
+	per100gData.value = null
+	// 设置每100g原始数据，用于克重变化时重算
+	per100gFromList.value = {
+		energy: food.energyPer100g || food.kcal / (parseFloat(food.weight) / 100),
+		protein: food.proteinPer100g || parseFloat(food.prot) / (parseFloat(food.weight) / 100),
+		fat: food.fatPer100g || parseFloat(food.fat) / (parseFloat(food.weight) / 100),
+		carbohydrate: food.carbPer100g || parseFloat(food.carb) / (parseFloat(food.weight) / 100),
+		iron: food.ironPer100g || food.iron,
+		sodium: food.sodiumPer100g || food.sodium
+	}
+}
+
+function removeFood(index: number) {
+	const food = addedFoods.value[index]
+	if (isEditMode.value && food.recordId) {
+		// 编辑模式下删除单条记录
+		deleteFoodRecord(food.recordId).then(res => {
+			if (res.code === 200) {
+				addedFoods.value.splice(index, 1)
+				uni.showToast({ title: '已删除', icon: 'none' })
+			}
+		}).catch(e => {
+			console.error('删除失败', e)
+			uni.showToast({ title: '删除失败', icon: 'none' })
+		})
+	} else {
+		addedFoods.value.splice(index, 1)
+	}
+}
+
+function goBack() {
+	// 触发首页刷新事件
+	uni.$emit('refreshHome')
+	uni.navigateBack()
+}
+
+function getMealTypeInt(): number {
+	switch (selectedMealType.value) {
+		case 'breakfast': return 1
+		case 'lunch': return 2
+		case 'dinner': return 3
+		case 'snack': return 4
+		default: return 1
+	}
+}
+
+function formatDate(date: Date): string {
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const day = String(date.getDate()).padStart(2, '0')
+	return `${year}-${month}-${day}`
+}
+
+async function submitEntry() {
+	if (addedFoods.value.length === 0) {
+		uni.showToast({ title: '请先添加食物', icon: 'none' })
+		return
+	}
+
+	try {
+		const requestData = {
+			recordDate: isEditMode.value ? editModeDate.value : formatDate(new Date()),
+			mealType: getMealTypeInt(),
+			foods: addedFoods.value.map(food => ({
+				foodId: food.foodId,
+				foodName: food.name,
+				categoryId: food.categoryId,
+				categoryName: null,
+				weight: parseFloat(food.weight) || 100,
+				energy: food.kcal,
+				protein: parseFloat(food.prot) || 0,
+				fat: parseFloat(food.fat) || 0,
+				carbohydrate: parseFloat(food.carb) || 0,
+				iron: food.iron,
+				sodium: food.sodium,
+				energyPer100g: food.energyPer100g,
+				proteinPer100g: food.proteinPer100g,
+				fatPer100g: food.fatPer100g,
+				carbohydratePer100g: food.carbPer100g,
+				ironPer100g: food.ironPer100g,
+				sodiumPer100g: food.sodiumPer100g
+			})),
+			photoUrl: null,
+			photoLocalPath: null,
+			remark: null
+		}
+
+		const res = await replaceFoodRecords(requestData)
+		if (res.code === 200) {
+			uni.showToast({ title: '提交成功', icon: 'success' })
+			setTimeout(() => {
+				uni.$emit('refreshHome')
+				uni.navigateBack()
+			}, 1500)
+		} else {
+			uni.showToast({ title: res.message || '提交失败', icon: 'none' })
+		}
+	} catch (e) {
+		console.error('提交失败', e)
+		uni.showToast({ title: '提交失败', icon: 'none' })
+	}
+}
+</script>
+
+<style src="./foodrecord.css"></style>

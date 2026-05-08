@@ -1,0 +1,6 @@
+@ChimeBackend.Api_HostAddress = http://localhost:5015
+
+GET {{ChimeBackend.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriLife - 餐次详情</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: 'Nunito', sans-serif; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- ===== HAPPY MEAL DETAIL ===== -->
+  <div style="background:linear-gradient(180deg,#fff0f9 0%,#fff8f0 50%,#f0f8ff 100%);min-height:100vh;position:relative;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#f472b6,#fb923c,#fbbf24);padding:44px 20px 20px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:rgba(255,255,255,0.1);border-radius:50%;"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div id="happy-meal-detail-back-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);">
+          <i data-lucide="arrow-left" style="width:18px;height:18px;color:white;"></i>
+        </div>
+        <div style="flex:1;">
+          <h2 style="color:white;font-size:18px;font-weight:800;" id="happy-meal-detail-title">早餐</h2>
+          <p style="color:rgba(255,255,255,0.8);font-size:12px;" id="happy-meal-detail-time">07:30</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 10px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);">
+          <span style="font-size:11px;color:white;font-weight:700;" id="happy-meal-detail-badge">✓ 已记录</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="scroll-content" style="padding:16px;padding-bottom:24px;" id="happy-meal-detail-content">
+    </div>
+  </div>
+
+  <!-- Image Viewer -->
+  <div id="img-viewer-overlay">
+    <div id="img-viewer-close" style="position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <img id="img-viewer-img" src="" alt="">
+    <p id="img-viewer-caption" style="color:white;margin-top:16px;font-size:14px;text-align:center;"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  // Build meal detail content
+  const content = document.getElementById('happy-meal-detail-content');
+  if (content) {
+    content.innerHTML = `
+      <div style="background:white;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 4px 16px rgba(244,114,182,0.1);">
+        <div style="font-size:12px;color:#9ca3af;font-weight:600;margin-bottom:8px;">营养一览</div>
+        <div style="display:flex;justify-content:space-around;">
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#f472b6;">320</div><div style="font-size:10px;color:#9ca3af;">kcal</div></div>
+          <div style="width:1px;background:#fce7f3;"></div>
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#fb923c;">42g</div><div style="font-size:10px;color:#9ca3af;">碳水</div></div>
+          <div style="width:1px;background:#fce7f3;"></div>
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#a855f7;">18g</div><div style="font-size:10px;color:#9ca3af;">蛋白质</div></div>
+          <div style="width:1px;background:#fce7f3;"></div>
+          <div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#34d399;">8g</div><div style="font-size:10px;color:#9ca3af;">脂肪</div></div>
+        </div>
+      </div>
+      <div style="background:white;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 4px 16px rgba(244,114,182,0.1);">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;"><span style="font-size:14px;">📸</span><span style="font-size:13px;font-weight:700;color:#1f2937;">食物照片</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <img src="https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=400&q=80" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=400&q=80" data-viewer-caption="早餐照片1">
+          <img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=80" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=80" data-viewer-caption="早餐照片2">
+        </div>
+      </div>
+      <div style="background:white;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 4px 16px rgba(244,114,182,0.1);">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:14px;">📝</span><span style="font-size:13px;font-weight:700;color:#1f2937;">饮食笔记</span></div>
+        <p style="font-size:13px;color:#4b5563;line-height:1.7;">今天早餐吃得很健康，营养均衡 💪</p>
+      </div>
+      <div style="background:white;border-radius:18px;padding:14px;box-shadow:0 4px 16px rgba(244,114,182,0.1);">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;"><span style="font-size:14px;">🍽️</span><span style="font-size:13px;font-weight:700;color:#1f2937;">食物清单</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #fce7f3;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">🥣</div>
+          <span style="font-size:13px;font-weight:600;color:#1f2937;">即食燕麦粥 80g</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #fce7f3;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">🥚</div>
+          <span style="font-size:13px;font-weight:600;color:#1f2937;">水煮鸡蛋 60g</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">🥛</div>
+          <span style="font-size:13px;font-weight:600;color:#1f2937;">全脂牛奶 200ml</span>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('happy-meal-detail-back-btn')?.addEventListener('click', function() {
+    window.location.href = 'happy-home.html';
+  });
+});
+</script>
+</body>
+</html>

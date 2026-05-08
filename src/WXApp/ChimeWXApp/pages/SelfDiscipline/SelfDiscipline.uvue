@@ -1,0 +1,663 @@
+<template>
+	<view class="page" :class="{ 'page-scroll-locked': modalVisible }">
+		<!-- ===== Header ===== -->
+		<view class="header">
+			<view class="header-deco deco-1"></view>
+			<view class="header-deco deco-2"></view>
+
+			<!-- 版本切换 -->
+			<view class="header-top">
+				<view class="toggle-btn" @click="switchToHappy">
+					<view class="toggle-icon">🔀</view>
+					<view class="toggle-text">欢乐版</view>
+				</view>
+			</view>
+
+			<!-- 问候 + 连续打卡 -->
+			<view class="header-main">
+				<view class="greeting">
+					<view class="greeting-date">{{ greetingDate }}</view>
+					<view class="greeting-text">{{ greetingText }}</view>
+				</view>
+				<view class="streak-badge">
+					<view class="streak-label">🔥 连续打卡</view>
+					<view class="streak-days">7 天</view>
+				</view>
+			</view>
+
+			<!-- 卡路里数据 + 营养素 -->
+			<view class="header-stats">
+				<!-- 圆形进度显示 -->
+				<view class="progress-ring" :style="{ background: 'conic-gradient(#FBBF24 ' + intakePercent + '%, rgba(255,255,255,0.2) 0%)' }">
+					<view class="progress-inner">
+						<view class="percent-value">{{ intakePercent }}%</view>
+						<view class="percent-label">已摄入</view>
+					</view>
+				</view>
+
+				<!-- 数据面板 -->
+				<view class="stats-panel">
+					<view class="stats-kcal">
+						<view class="kcal-item">
+							<view class="kcal-label">已摄入</view>
+							<view class="kcal-value">{{ totalKcal }}<text class="kcal-unit"> kcal</text></view>
+						</view>
+						<view class="kcal-item">
+							<view class="kcal-label">总摄入</view>
+							<view class="kcal-value target">{{ targetKcal }}<text class="kcal-unit"> kcal</text></view>
+						</view>
+					</view>
+
+					<!-- 三大营养素 -->
+					<view class="macro-row">
+						<view class="macro-item">
+							<view class="macro-label">碳水</view>
+							<view class="macro-value">{{ totalCarb }}g</view>
+						</view>
+						<view class="macro-item">
+							<view class="macro-label">蛋白质</view>
+							<view class="macro-value">{{ totalProtein }}g</view>
+						</view>
+						<view class="macro-item">
+							<view class="macro-label">脂肪</view>
+							<view class="macro-value">{{ totalFat }}g</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+
+		<!-- ===== 滚动内容 ===== -->
+		<view class="scroll-area">
+			<view class="scroll-inner">
+			<!-- 饮食记录标题 -->
+			<view class="section-header">
+				<view class="section-title">今日饮食记录</view>
+				<view class="section-total">共计 {{ totalKcal }} kcal</view>
+			</view>
+
+			<!-- 早餐卡片 -->
+			<view class="meal-card" :class="{ 'meal-card-empty': !mealData.breakfast.hasData }" @click="goMealDetail('breakfast')">
+				<view class="meal-icon" :class="mealData.breakfast.hasData ? 'icon-morning' : 'icon-morning-empty'">🌅</view>
+				<view class="meal-body">
+					<view class="meal-row-top">
+						<view :class="mealData.breakfast.hasData ? 'meal-name' : 'meal-name-empty'">早餐</view>
+						<view v-if="mealData.breakfast.hasData" class="meal-kcal">{{ mealData.breakfast.kcal }} kcal</view>
+						<view v-else class="meal-status-empty">待录入</view>
+					</view>
+					<view v-if="mealData.breakfast.hasData" class="meal-desc">{{ mealData.breakfast.desc }}</view>
+					<view v-else class="meal-desc-empty">还未记录早餐</view>
+					<view class="meal-tags">
+						<view v-if="mealData.breakfast.hasData" class="tag tag-carb">碳水 {{ mealData.breakfast.carb }}g</view>
+						<view v-if="mealData.breakfast.hasData" class="tag tag-protein">蛋白 {{ mealData.breakfast.protein }}g</view>
+						<view v-if="mealData.breakfast.hasData" class="tag tag-fat">脂肪 {{ mealData.breakfast.fat }}g</view>
+						<template v-else>
+							<view class="tag tag-empty">碳水 --g</view>
+							<view class="tag tag-empty">蛋白 --g</view>
+							<view class="tag tag-empty">脂肪 --g</view>
+						</template>
+					</view>
+				</view>
+				<view class="meal-arrow" :class="mealData.breakfast.hasData ? 'arrow-green' : 'arrow-add'">{{ mealData.breakfast.hasData ? '›' : '+' }}</view>
+			</view>
+
+			<!-- 午餐卡片 -->
+			<view class="meal-card" :class="{ 'meal-card-empty': !mealData.lunch.hasData }" @click="goMealDetail('lunch')">
+				<view class="meal-icon" :class="mealData.lunch.hasData ? 'icon-noon' : 'icon-noon-empty'">☀️</view>
+				<view class="meal-body">
+					<view class="meal-row-top">
+						<view :class="mealData.lunch.hasData ? 'meal-name' : 'meal-name-empty'">午餐</view>
+						<view v-if="mealData.lunch.hasData" class="meal-kcal">{{ mealData.lunch.kcal }} kcal</view>
+						<view v-else class="meal-status-empty">待录入</view>
+					</view>
+					<view v-if="mealData.lunch.hasData" class="meal-desc">{{ mealData.lunch.desc }}</view>
+					<view v-else class="meal-desc-empty">还未记录午餐</view>
+					<view class="meal-tags">
+						<view v-if="mealData.lunch.hasData" class="tag tag-carb">碳水 {{ mealData.lunch.carb }}g</view>
+						<view v-if="mealData.lunch.hasData" class="tag tag-protein">蛋白 {{ mealData.lunch.protein }}g</view>
+						<view v-if="mealData.lunch.hasData" class="tag tag-fat">脂肪 {{ mealData.lunch.fat }}g</view>
+						<template v-else>
+							<view class="tag tag-empty">碳水 --g</view>
+							<view class="tag tag-empty">蛋白 --g</view>
+							<view class="tag tag-empty">脂肪 --g</view>
+						</template>
+					</view>
+				</view>
+				<view class="meal-arrow" :class="mealData.lunch.hasData ? 'arrow-green' : 'arrow-add'">{{ mealData.lunch.hasData ? '›' : '+' }}</view>
+			</view>
+
+			<!-- 晚餐卡片 -->
+			<view class="meal-card" :class="{ 'meal-card-empty': !mealData.dinner.hasData }" @click="goMealDetail('dinner')">
+				<view class="meal-icon" :class="mealData.dinner.hasData ? 'icon-dusk' : 'icon-dusk-empty'">🌙</view>
+				<view class="meal-body">
+					<view class="meal-row-top">
+						<view :class="mealData.dinner.hasData ? 'meal-name' : 'meal-name-empty'">晚餐</view>
+						<view v-if="mealData.dinner.hasData" class="meal-kcal">{{ mealData.dinner.kcal }} kcal</view>
+						<view v-else class="meal-status-empty">待录入</view>
+					</view>
+					<view v-if="mealData.dinner.hasData" class="meal-desc">{{ mealData.dinner.desc }}</view>
+					<view v-else class="meal-desc-empty">还未记录晚餐</view>
+					<view class="meal-tags">
+						<view v-if="mealData.dinner.hasData" class="tag tag-carb">碳水 {{ mealData.dinner.carb }}g</view>
+						<view v-if="mealData.dinner.hasData" class="tag tag-protein">蛋白 {{ mealData.dinner.protein }}g</view>
+						<view v-if="mealData.dinner.hasData" class="tag tag-fat">脂肪 {{ mealData.dinner.fat }}g</view>
+						<template v-else>
+							<view class="tag tag-empty">碳水 --g</view>
+							<view class="tag tag-empty">蛋白 --g</view>
+							<view class="tag tag-empty">脂肪 --g</view>
+						</template>
+					</view>
+				</view>
+				<view class="meal-arrow" :class="mealData.dinner.hasData ? 'arrow-green' : 'arrow-add'">{{ mealData.dinner.hasData ? '›' : '+' }}</view>
+			</view>
+
+			<!-- 加餐卡片 -->
+			<view class="meal-card" :class="{ 'meal-card-empty': !mealData.snack.hasData }" @click="goMealDetail('snack')">
+				<view class="meal-icon" :class="mealData.snack.hasData ? 'icon-snack' : 'icon-snack-empty'">🍎</view>
+				<view class="meal-body">
+					<view class="meal-row-top">
+						<view :class="mealData.snack.hasData ? 'meal-name' : 'meal-name-empty'">加餐</view>
+						<view v-if="mealData.snack.hasData" class="meal-kcal">{{ mealData.snack.kcal }} kcal</view>
+						<view v-else class="meal-status-empty">待录入</view>
+					</view>
+					<view v-if="mealData.snack.hasData" class="meal-desc">{{ mealData.snack.desc }}</view>
+					<view v-else class="meal-desc-empty">还未记录加餐</view>
+					<view class="meal-tags">
+						<view v-if="mealData.snack.hasData" class="tag tag-carb">碳水 {{ mealData.snack.carb }}g</view>
+						<view v-if="mealData.snack.hasData" class="tag tag-protein">蛋白 {{ mealData.snack.protein }}g</view>
+						<view v-if="mealData.snack.hasData" class="tag tag-fat">脂肪 {{ mealData.snack.fat }}g</view>
+						<template v-else>
+							<view class="tag tag-empty">碳水 --g</view>
+							<view class="tag tag-empty">蛋白 --g</view>
+							<view class="tag tag-empty">脂肪 --g</view>
+						</template>
+					</view>
+				</view>
+				<view class="meal-arrow" :class="mealData.snack.hasData ? 'arrow-red' : 'arrow-add'">{{ mealData.snack.hasData ? '›' : '+' }}</view>
+			</view>
+
+			<!-- 打卡日历 -->
+			<view class="calendar-card">
+				<view class="cal-header">
+					<view class="cal-title">打卡日历</view>
+					<view class="cal-nav">
+						<view class="cal-nav-btn" @click="prevMonth">‹</view>
+						<view class="cal-month">{{ calYear }}年{{ calMonth }}月</view>
+						<view class="cal-nav-btn" @click="nextMonth">›</view>
+					</view>
+				</view>
+
+				<!-- 星期头 -->
+				<view class="cal-weekdays">
+					<view class="cal-weekday">日</view>
+					<view class="cal-weekday">一</view>
+					<view class="cal-weekday">二</view>
+					<view class="cal-weekday">三</view>
+					<view class="cal-weekday">四</view>
+					<view class="cal-weekday">五</view>
+					<view class="cal-weekday">六</view>
+				</view>
+
+				<!-- 日期网格 -->
+				<view class="cal-grid">
+					<view v-for="(item, idx) in calDays" :key="idx"
+						class="cal-day"
+						:class="{ 'cal-day-filled': item.filled, 'cal-day-today': item.today, 'cal-day-future': item.future && !item.filled, 'cal-day-today-no-record': item.todayNoRecord }"
+						@click="showDateModal(item)">
+						<view class="cal-day-num">{{ item.day }}</view>
+					</view>
+				</view>
+
+				<!-- 图例 -->
+				<view class="cal-legend">
+					<view class="legend-item">
+						<view class="legend-dot legend-dot-filled"></view>
+						<view class="legend-text">已录入</view>
+					</view>
+					<view class="legend-item">
+						<view class="legend-dot legend-dot-today"></view>
+						<view class="legend-text">今日</view>
+					</view>
+				</view>
+			</view>
+
+			<view style="height: 50rpx;"></view>
+		</view>
+		</view>
+
+		<!-- ===== 底部导航 ===== -->
+		<view class="bottom-nav">
+			<view class="nav-item nav-active">
+				<view class="nav-icon">
+					<view class="nav-icon-chart">
+						<view class="nav-icon-bar" style="height:16rpx;"></view>
+						<view class="nav-icon-bar" style="height:32rpx;"></view>
+						<view class="nav-icon-bar" style="height:24rpx;"></view>
+					</view>
+				</view>
+				<view class="nav-label">图表</view>
+			</view>
+			<view class="nav-item fab-item" @click="goEntry">
+				<view class="fab-icon">+</view>
+			</view>
+			<view class="nav-item">
+				<view class="nav-icon nav-icon-user">
+					<view class="nav-icon-user-head"></view>
+					<view class="nav-icon-user-body"></view>
+				</view>
+				<view class="nav-label">我的</view>
+			</view>
+		</view>
+
+		<!-- ===== 日期饮食弹窗 ===== -->
+		<view class="modal-overlay" v-if="modalVisible" @click="hideModal">
+			<view class="modal-sheet" @click.stop="">
+				<view class="modal-header">
+					<view>
+						<view class="modal-title">{{ modalTitle }}</view>
+						<view class="modal-sub">饮食记录</view>
+					</view>
+					<view class="modal-close" @click="hideModal">✕</view>
+				</view>
+				<view class="modal-body" v-if="!modalLoading">
+					<!-- 早餐 -->
+					<view class="modal-meal-item" v-if="modalMealData.breakfast.hasData || modalMealData.lunch.hasData || modalMealData.dinner.hasData || modalMealData.snack.hasData">
+						<view class="modal-meal-row" v-if="modalMealData.breakfast.hasData">
+							<view class="modal-meal-name">早餐</view>
+							<view class="modal-meal-kcal">{{ modalMealData.breakfast.kcal }} kcal</view>
+						</view>
+						<view class="modal-meal-desc" v-if="modalMealData.breakfast.hasData">{{ modalMealData.breakfast.desc }}</view>
+						<view class="modal-meal-tags" v-if="modalMealData.breakfast.hasData">
+							<view class="modal-tag">碳水 {{ modalMealData.breakfast.carb }}g</view>
+							<view class="modal-tag">蛋白 {{ modalMealData.breakfast.protein }}g</view>
+							<view class="modal-tag">脂肪 {{ modalMealData.breakfast.fat }}g</view>
+						</view>
+						<!-- 午餐 -->
+						<view class="modal-meal-row" v-if="modalMealData.lunch.hasData">
+							<view class="modal-meal-name">午餐</view>
+							<view class="modal-meal-kcal">{{ modalMealData.lunch.kcal }} kcal</view>
+						</view>
+						<view class="modal-meal-desc" v-if="modalMealData.lunch.hasData">{{ modalMealData.lunch.desc }}</view>
+						<view class="modal-meal-tags" v-if="modalMealData.lunch.hasData">
+							<view class="modal-tag">碳水 {{ modalMealData.lunch.carb }}g</view>
+							<view class="modal-tag">蛋白 {{ modalMealData.lunch.protein }}g</view>
+							<view class="modal-tag">脂肪 {{ modalMealData.lunch.fat }}g</view>
+						</view>
+						<!-- 晚餐 -->
+						<view class="modal-meal-row" v-if="modalMealData.dinner.hasData">
+							<view class="modal-meal-name">晚餐</view>
+							<view class="modal-meal-kcal">{{ modalMealData.dinner.kcal }} kcal</view>
+						</view>
+						<view class="modal-meal-desc" v-if="modalMealData.dinner.hasData">{{ modalMealData.dinner.desc }}</view>
+						<view class="modal-meal-tags" v-if="modalMealData.dinner.hasData">
+							<view class="modal-tag">碳水 {{ modalMealData.dinner.carb }}g</view>
+							<view class="modal-tag">蛋白 {{ modalMealData.dinner.protein }}g</view>
+							<view class="modal-tag">脂肪 {{ modalMealData.dinner.fat }}g</view>
+						</view>
+						<!-- 加餐 -->
+						<view class="modal-meal-row" v-if="modalMealData.snack.hasData">
+							<view class="modal-meal-name">加餐</view>
+							<view class="modal-meal-kcal">{{ modalMealData.snack.kcal }} kcal</view>
+						</view>
+						<view class="modal-meal-desc" v-if="modalMealData.snack.hasData">{{ modalMealData.snack.desc }}</view>
+						<view class="modal-meal-tags" v-if="modalMealData.snack.hasData">
+							<view class="modal-tag">碳水 {{ modalMealData.snack.carb }}g</view>
+							<view class="modal-tag">蛋白 {{ modalMealData.snack.protein }}g</view>
+							<view class="modal-tag">脂肪 {{ modalMealData.snack.fat }}g</view>
+						</view>
+					</view>
+					<view class="modal-empty" v-else>暂无记录</view>
+				</view>
+				<view class="modal-body" v-else>
+					<view class="modal-loading">加载中...</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { ref, computed, onMounted } from 'vue'
+import { getFoodRecords } from '../../api/food'
+import { round } from '../../api/number'
+
+// ===== 餐次数据 =====
+// 餐次数据结构
+interface MealItem {
+	hasData: boolean
+	kcal: number
+	desc: string
+	carb: number
+	protein: number
+	fat: number
+}
+
+// 创建空餐次数据
+function createEmptyMealItem(): MealItem {
+	return {
+		hasData: false,
+		kcal: 0,
+		desc: '',
+		carb: 0,
+		protein: 0,
+		fat: 0
+	}
+}
+
+// 重置所有餐次数据
+function resetMealData() {
+	mealData.value.breakfast = createEmptyMealItem()
+	mealData.value.lunch = createEmptyMealItem()
+	mealData.value.dinner = createEmptyMealItem()
+	mealData.value.snack = createEmptyMealItem()
+}
+
+const mealData = ref({
+	breakfast: createEmptyMealItem(),
+	lunch: createEmptyMealItem(),
+	dinner: createEmptyMealItem(),
+	snack: createEmptyMealItem()
+})
+
+// 总热量
+const totalKcal = computed(() => {
+	return Math.round(mealData.value.breakfast.kcal +
+		mealData.value.lunch.kcal +
+		mealData.value.dinner.kcal +
+		mealData.value.snack.kcal)
+})
+
+// 总碳水
+const totalCarb = computed(() => {
+	return round(mealData.value.breakfast.carb +
+		mealData.value.lunch.carb +
+		mealData.value.dinner.carb +
+		mealData.value.snack.carb)
+})
+
+// 总蛋白质
+const totalProtein = computed(() => {
+	return round(mealData.value.breakfast.protein +
+		mealData.value.lunch.protein +
+		mealData.value.dinner.protein +
+		mealData.value.snack.protein)
+})
+
+// 总脂肪
+const totalFat = computed(() => {
+	return round(mealData.value.breakfast.fat +
+		mealData.value.lunch.fat +
+		mealData.value.dinner.fat +
+		mealData.value.snack.fat)
+})
+
+// 目标热量（暂时用默认值，后续可从API获取）
+const targetKcal = ref(2100)
+
+// 摄入百分比
+const intakePercent = computed(() => {
+	if (targetKcal.value === 0) return 0
+	return Math.min(Math.round((totalKcal.value / targetKcal.value) * 100), 100)
+})
+
+// 圆环周长 (2 * π * r, r=60)
+const circumference = 2 * Math.PI * 60
+
+// ===== 加载当日数据 =====
+function getTodayString(): string {
+	const today = new Date()
+	const year = today.getFullYear()
+	const month = String(today.getMonth() + 1).padStart(2, '0')
+	const day = String(today.getDate()).padStart(2, '0')
+	return `${year}-${month}-${day}`
+}
+
+function getMealTypeKey(mealType: number): string {
+	switch (mealType) {
+		case 1: return 'breakfast'
+		case 2: return 'lunch'
+		case 3: return 'dinner'
+		case 4: return 'snack'
+		default: return 'breakfast'
+	}
+}
+
+// 构建餐次描述
+function buildMealDesc(foodNames: string[]): string {
+	if (foodNames.length <= 5) {
+		const maxLen = 12
+		return foodNames.map((n: string) => n.length > maxLen ? n.slice(0, maxLen) + '..' : n).join(', ')
+	}
+	return foodNames.slice(0, 2).join(', ') + '.. 等' + foodNames.length + '种'
+}
+
+// 从记录构建餐次数据
+function buildMealItem(record: any): MealItem {
+	const item = createEmptyMealItem()
+	for (const food of record.foods) {
+		item.hasData = true
+		item.kcal += Math.round(food.calories)
+		item.carb += round(food.carbohydrate)
+		item.protein += round(food.protein)
+		item.fat += round(food.fat)
+	}
+	// 累加后再次舍入，防止浮点误差累积
+	item.protein = round(item.protein)
+	item.desc = buildMealDesc(record.foods.map((f: any) => f.foodName))
+	return item
+}
+
+async function loadMealData() {
+	try {
+		const today = getTodayString()
+		const res = await getFoodRecords(today, today)
+		if (res.code === 200 && res.data && res.data.items) {
+			// 重置数据
+			resetMealData()
+
+			// 按餐次分组填充数据
+			for (const record of res.data.items) {
+				const mealKey = getMealTypeKey(record.mealType)
+				mealData.value[mealKey as keyof typeof mealData.value] = buildMealItem(record)
+			}
+		}
+	} catch (e) {
+		console.error('加载饮食数据失败', e)
+	}
+}
+
+onMounted(() => {
+	loadMonthRecords(calYear.value, calMonth.value)
+	// 监听返回刷新事件
+	uni.$on('refreshHome', () => {
+		loadMonthRecords(calYear.value, calMonth.value)
+	})
+})
+
+// ===== 日历数据 =====
+const now = new Date()
+const calYear = ref<number>(now.getFullYear())
+const calMonth = ref<number>(now.getMonth() + 1)
+
+const greetingDate = computed(() => {
+	const d = new Date()
+	const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+	return `${d.getMonth() + 1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`
+})
+
+const greetingText = computed(() => {
+	const hour = new Date().getHours()
+	if (hour < 6) return '夜深了，小绿 🌙'
+	if (hour < 9) return '早安，小绿 👋'
+	if (hour < 12) return '上午好，小绿 ☀️'
+	if (hour < 14) return '中午好，小绿 🍽️'
+	if (hour < 18) return '下午好，小绿 🌤️'
+	return '晚上好，小绿 🌆'
+})
+
+// 已录入日期
+const filledDates = ref<string[]>([])
+
+// 获取当月有记录的日期列表
+async function loadMonthRecords(year: number, month: number) {
+	try {
+		const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+		const lastDay = new Date(year, month, 0).getDate()
+		const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+		const res = await getFoodRecords(startDate, endDate)
+		if (res.code === 200 && res.data && res.data.items) {
+			// 提取有记录的唯一日期
+			const dates = res.data.items.map((r: any) => {
+				const d = new Date(r.recordDate)
+				return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+			})
+			// 去重
+			filledDates.value = [...new Set(dates)]
+
+			// 如果是当前月，填充顶部 mealData
+			const today = new Date()
+			const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+			if (year === today.getFullYear() && month === today.getMonth() + 1) {
+				resetMealData()
+				for (const record of res.data.items) {
+					const d = new Date(record.recordDate)
+					const recordDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+					if (recordDateStr === todayStr) {
+						const mealKey = getMealTypeKey(record.mealType)
+						mealData.value[mealKey as keyof typeof mealData.value] = buildMealItem(record)
+					}
+				}
+			}
+		} else {
+			filledDates.value = []
+			// 如果是当前月，重置 mealData
+			const today = new Date()
+			if (year === today.getFullYear() && month === today.getMonth() + 1) {
+				resetMealData()
+			}
+		}
+	} catch (e) {
+		console.error('加载月份记录失败', e)
+		filledDates.value = []
+	}
+}
+
+const calDays = computed(() => {
+	const year = calYear.value
+	const month = calMonth.value
+	const firstDay = new Date(year, month - 1, 1).getDay()
+	const daysInMonth = new Date(year, month, 0).getDate()
+	const today = new Date()
+	const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+	const result: UTSJSONObject[] = []
+	for (let i = 0; i < firstDay; i++) {
+		result.push({ day: '', filled: false, today: false, future: false, todayNoRecord: false } as UTSJSONObject)
+	}
+	for (let d = 1; d <= daysInMonth; d++) {
+		const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+		const isToday = dateKey === todayStr
+		const isFuture = dateKey > todayStr
+		const isFilled = filledDates.value.includes(dateKey)
+		const todayNoRecord = isToday && !isFilled
+		result.push({ day: String(d), filled: isFilled, today: isToday, future: isFuture, todayNoRecord: todayNoRecord } as UTSJSONObject)
+	}
+	return result
+})
+
+function prevMonth() {
+	if (calMonth.value === 1) {
+		calMonth.value = 12
+		calYear.value--
+	} else {
+		calMonth.value--
+	}
+	loadMonthRecords(calYear.value, calMonth.value)
+}
+
+function nextMonth() {
+	if (calMonth.value === 12) {
+		calMonth.value = 1
+		calYear.value++
+	} else {
+		calMonth.value++
+	}
+	loadMonthRecords(calYear.value, calMonth.value)
+}
+
+// ===== 弹窗 =====
+const modalVisible = ref(false)
+const modalTitle = ref('')
+const modalMealData = ref({
+	breakfast: createEmptyMealItem(),
+	lunch: createEmptyMealItem(),
+	dinner: createEmptyMealItem(),
+	snack: createEmptyMealItem()
+})
+const modalLoading = ref(false)
+
+async function loadDateMealData(dateStr: string) {
+	modalLoading.value = true
+	try {
+		const res = await getFoodRecords(dateStr, dateStr)
+		if (res.code === 200 && res.data && res.data.items) {
+			// 重置弹窗数据
+			modalMealData.value.breakfast = createEmptyMealItem()
+			modalMealData.value.lunch = createEmptyMealItem()
+			modalMealData.value.dinner = createEmptyMealItem()
+			modalMealData.value.snack = createEmptyMealItem()
+
+			// 按餐次填充数据
+			for (const record of res.data.items) {
+				const mealKey = getMealTypeKey(record.mealType)
+				modalMealData.value[mealKey as keyof typeof modalMealData.value] = buildMealItem(record)
+			}
+		} else {
+			// 无数据时重置
+			modalMealData.value.breakfast = createEmptyMealItem()
+			modalMealData.value.lunch = createEmptyMealItem()
+			modalMealData.value.dinner = createEmptyMealItem()
+			modalMealData.value.snack = createEmptyMealItem()
+		}
+	} catch (e) {
+		console.error('加载日期饮食数据失败', e)
+	} finally {
+		modalLoading.value = false
+	}
+}
+
+function showDateModal(item: UTSJSONObject) {
+	if (!item.day) return
+	if (item.future) return
+	const dateStr = `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
+	// 今日无记录，跳转到新增页面
+	if (item.todayNoRecord) {
+		goMealDetail('breakfast', dateStr)
+		return
+	}
+	modalTitle.value = `${calMonth.value}月${item.day}日`
+	modalVisible.value = true
+	loadDateMealData(dateStr)
+}
+
+function hideModal() {
+	modalVisible.value = false
+}
+
+// ===== 导航 =====
+function switchToHappy() {
+	uni.redirectTo({ url: '/pages/MouthCrave/MouthCrave' })
+}
+
+function goMealDetail(mealType: string, date?: string) {
+	const mealTypeInt = mealType === 'breakfast' ? 1 : mealType === 'lunch' ? 2 : mealType === 'dinner' ? 3 : 4
+	const targetDate = date || getTodayString()
+	uni.navigateTo({ url: `/pages/SelfDiscipline/foodrecord?mealType=${mealTypeInt}&date=${targetDate}` })
+}
+
+function goEntry() {
+	uni.navigateTo({ url: '/pages/SelfDiscipline/foodrecord' })
+}
+</script>
+
+<style src="./SelfDiscipline.css"></style>

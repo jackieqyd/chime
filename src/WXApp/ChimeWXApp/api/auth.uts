@@ -1,0 +1,83 @@
+import { request, type ApiResponse, type AuthData, type UserInfo } from './request'
+
+// 微信小程序登录
+export function miniProgramLogin(code: string): Promise<ApiResponse<AuthData>> {
+	return request<ApiResponse<AuthData>>({
+		url: '/api/auth/miniprogram-login',
+		method: 'POST',
+		data: { code }
+	})
+}
+
+// 通过微信 jscode2session 获取 openid（开发阶段用 mock）
+export function getOpenIdFromWx(code: string): Promise<string> {
+	// TODO: 生产环境替换为真实微信 API 调用
+	return new Promise((resolve, reject) => {
+	    wx.request({
+	        url: 'https://api.weixin.qq.com/sns/jscode2session',
+	        data: { appid: 'wxe6be0445ca2c7875', secret: '45126844fac924917a046f30ce4530f5', js_code: code, grant_type: 'authorization_code' },
+	        success: (res: any) => res.data && res.data.openid ? resolve(res.data.openid) : reject(new Error('获取openid失败')),
+	        fail: reject
+	    })
+	})
+	// return Promise.resolve(`mock_openid_${code}`)
+}
+
+// 保存登录信息
+export function saveAuthData(authData: AuthData): void {
+	uni.setStorageSync('accessToken', authData.accessToken)
+	uni.setStorageSync('refreshToken', authData.refreshToken)
+	if (authData.user) {
+		uni.setStorageSync('userInfo', JSON.stringify(authData.user))
+	}
+}
+
+// 获取保存的用户信息
+export function getUserInfo(): UserInfo | null {
+	const userStr = uni.getStorageSync('userInfo')
+	if (userStr) {
+		return JSON.parse(userStr) as UserInfo
+	}
+	return null
+}
+
+// 清除登录信息
+export function clearAuthData(): void {
+	uni.removeStorageSync('accessToken')
+	uni.removeStorageSync('refreshToken')
+	uni.removeStorageSync('userInfo')
+	uni.removeStorageSync('userInfo')
+	uni.removeStorageSync('versionMode')
+}
+
+// 检查是否已登录
+export function isLoggedIn(): boolean {
+	return !!uni.getStorageSync('accessToken')
+}
+
+// 保存版本模式
+export function saveVersionMode(mode: number): void {
+	uni.setStorageSync('versionMode', mode)
+	// 同时更新userInfo中的versionMode
+	const userStr = uni.getStorageSync('userInfo')
+	if (userStr) {
+		const userInfo = JSON.parse(userStr)
+		userInfo.versionMode = mode
+		uni.setStorageSync('userInfo', JSON.stringify(userInfo))
+	}
+}
+
+// 获取版本模式
+export function getVersionMode(): number | null {
+	const mode = uni.getStorageSync('versionMode')
+	return mode !== '' ? mode : null
+}
+
+// 更新用户版本模式
+export function updateVersionMode(versionMode: number): Promise<ApiResponse<any>> {
+	return request<ApiResponse<any>>({
+		url: '/api/users',
+		method: 'PUT',
+		data: { versionMode }
+	})
+}

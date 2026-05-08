@@ -1,0 +1,332 @@
+<template>
+	<view class="calendar-section">
+		<!-- 月份切换 -->
+		<view class="calendar-header">
+			<view class="cal-month-btn" @click="handlePrevMonth">
+				<text class="cal-arrow">‹</text>
+			</view>
+			<text class="cal-month-text">{{ year }}年{{ month }}月</text>
+			<view class="cal-month-btn" @click="handleNextMonth">
+				<text class="cal-arrow">›</text>
+			</view>
+		</view>
+
+		<!-- 星期行 -->
+		<view class="cal-weekdays">
+			<text class="cal-weekday cal-weekend">日</text>
+			<text class="cal-weekday">一</text>
+			<text class="cal-weekday">二</text>
+			<text class="cal-weekday">三</text>
+			<text class="cal-weekday">四</text>
+			<text class="cal-weekday">五</text>
+			<text class="cal-weekday cal-weekend">六</text>
+		</view>
+
+		<!-- 日期网格 -->
+		<view class="cal-days">
+			<view
+				v-for="(day, index) in days"
+				:key="index"
+				class="cal-day"
+				:class="{
+					'cal-day-today': day.isToday,
+					'cal-day-other': !day.isCurrentMonth
+				}"
+				@click="handleDayClick(day)"
+			>
+				<text class="cal-day-num">{{ day.day }}</text>
+				<view v-if="day.status === 'recorded'" class="cal-day-status">
+					<text class="cal-check">✓</text>
+				</view>
+				<view v-else-if="day.status === 'unrecorded'" class="cal-day-status">
+					<view class="status-dot"></view>
+				</view>
+			</view>
+		</view>
+
+		<!-- 图例 -->
+		<view class="calendar-legend">
+			<view class="legend-item">
+				<view class="legend-dot legend-dot-recorded"></view>
+				<text class="legend-text">已录入</text>
+			</view>
+			<view class="legend-item">
+				<view class="legend-dot legend-dot-unrecorded"></view>
+				<text class="legend-text">未录入</text>
+			</view>
+			<view class="legend-item">
+				<view class="legend-dot legend-dot-other"></view>
+				<text class="legend-text">非当月</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+interface DayInfo {
+	day: number
+	isToday: boolean
+	isCurrentMonth: boolean
+	status: string
+	fullDate: string
+}
+
+const props = defineProps<{
+	year: number
+	month: number
+	recordedDates: string[]
+	unrecordedDates: string[]
+}>()
+
+const emit = defineEmits<{
+	(e: 'month-change', year: number, month: number): void
+	(e: 'day-click', day: DayInfo): void
+}>()
+
+const days = ref<DayInfo[]>([])
+
+const today = new Date()
+
+watch(() => [props.year, props.month], () => {
+	generateDays()
+}, { immediate: true })
+
+watch(() => [props.recordedDates, props.unrecordedDates], () => {
+	generateDays()
+})
+
+function generateDays() {
+	const year = props.year
+	const month = props.month
+	const result: DayInfo[] = []
+
+	const firstDayOfMonth = new Date(year, month - 1, 1)
+	const startDayOfWeek = firstDayOfMonth.getDay()
+	const daysInMonth = new Date(year, month, 0).getDate()
+	const daysInPrevMonth = new Date(year, month - 1, 0).getDate()
+
+	const recordedSet: Set<string> = new Set(props.recordedDates)
+	const unrecordedSet: Set<string> = new Set(props.unrecordedDates)
+
+	for (let i = startDayOfWeek - 1; i >= 0; i--) {
+		const d = daysInPrevMonth - i
+		result.push({
+			day: d,
+			isToday: false,
+			isCurrentMonth: false,
+			status: '',
+			fullDate: `${year}-${month - 1}-${d}`
+		})
+	}
+
+	for (let d = 1; d <= daysInMonth; d++) {
+		const fullDate = `${year}-${month}-${d}`
+		const isToday =
+			d === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear()
+		let status = ''
+		if (recordedSet.has(fullDate)) {
+			status = 'recorded'
+		} else if (unrecordedSet.has(fullDate)) {
+			status = 'unrecorded'
+		}
+		result.push({
+			day: d,
+			isToday: isToday,
+			isCurrentMonth: true,
+			status: status,
+			fullDate: fullDate
+		})
+	}
+
+	const remainingSlots = 42 - result.length
+	for (let d = 1; d <= remainingSlots; d++) {
+		result.push({
+			day: d,
+			isToday: false,
+			isCurrentMonth: false,
+			status: '',
+			fullDate: `${year}-${month + 1}-${d}`
+		})
+	}
+
+	days.value = result
+}
+
+function handlePrevMonth() {
+	let newYear = props.year
+	let newMonth = props.month
+	if (newMonth === 1) {
+		newYear -= 1
+		newMonth = 12
+	} else {
+		newMonth -= 1
+	}
+	emit('month-change', newYear, newMonth)
+}
+
+function handleNextMonth() {
+	let newYear = props.year
+	let newMonth = props.month
+	if (newMonth === 12) {
+		newYear += 1
+		newMonth = 1
+	} else {
+		newMonth += 1
+	}
+	emit('month-change', newYear, newMonth)
+}
+
+function handleDayClick(day: DayInfo) {
+	if (day.isCurrentMonth) {
+		emit('day-click', day)
+	}
+}
+
+onMounted(() => {
+	generateDays()
+})
+</script>
+
+<style>
+.calendar-section {
+	background-color: rgba(255, 255, 255, 0.95);
+	border-radius: 12rpx;
+	padding: 24rpx 20rpx;
+	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
+.calendar-header {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16rpx;
+}
+
+.cal-month-btn {
+	width: 56rpx;
+	height: 56rpx;
+	border-radius: 28rpx;
+	background-color: rgba(16, 185, 129, 0.08);
+	align-items: center;
+	justify-content: center;
+}
+
+.cal-arrow {
+	font-size: 24rpx;
+	color: #10B981;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.cal-month-text {
+	font-size: 28rpx;
+	font-weight: 600;
+	color: #323233;
+}
+
+.cal-weekdays {
+	flex-direction: row;
+	margin-bottom: 8rpx;
+}
+
+.cal-weekday {
+	font-size: 22rpx;
+	color: #969799;
+	text-align: center;
+	flex: 1;
+}
+
+.cal-weekend {
+	color: #F87171;
+}
+
+.cal-days {
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.cal-day {
+	width: 88rpx;
+	height: 88rpx;
+	border-radius: 8rpx;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	margin-bottom: 4rpx;
+}
+
+.cal-day-today {
+	border-width: 2rpx;
+	border-color: #10B981;
+	background-color: rgba(209, 250, 229, 0.3);
+}
+
+.cal-day-num {
+	font-size: 26rpx;
+	font-weight: 500;
+	color: #323233;
+}
+
+.cal-day-other .cal-day-num {
+	color: #C8C9CC;
+}
+
+.cal-day-status {
+	margin-top: 2rpx;
+	align-items: center;
+}
+
+.cal-check {
+	font-size: 16rpx;
+	color: #10B981;
+	font-weight: 600;
+}
+
+.status-dot {
+	width: 10rpx;
+	height: 10rpx;
+	border-radius: 5rpx;
+	background-color: #FBBF24;
+}
+
+.calendar-legend {
+	flex-direction: row;
+	justify-content: center;
+	margin-top: 16rpx;
+	padding-top: 16rpx;
+	border-top-width: 1rpx;
+	border-top-color: rgba(16, 185, 129, 0.08);
+}
+
+.legend-item {
+	flex-direction: row;
+	align-items: center;
+	margin-left: 16rpx;
+	margin-right: 16rpx;
+}
+
+.legend-dot {
+	width: 16rpx;
+	height: 16rpx;
+	border-radius: 8rpx;
+	margin-right: 8rpx;
+}
+
+.legend-dot-recorded {
+	background-color: #10B981;
+}
+
+.legend-dot-unrecorded {
+	background-color: #FBBF24;
+}
+
+.legend-dot-other {
+	background-color: #C8C9CC;
+}
+
+.legend-text {
+	font-size: 22rpx;
+	color: #969799;
+}
+</style>

@@ -1,0 +1,89 @@
+<template>
+	<view class="page">
+		<!-- 装饰光斑 -->
+		<view class="blob blob-1"></view>
+		<view class="blob blob-2"></view>
+
+		<!-- 主内容区 -->
+		<view class="content">
+			<!-- 标题区 -->
+			<view class="header">
+				<view class="header-subtitle">为你量身打造</view>
+				<view class="header-title">选择你的风格</view>
+			</view>
+
+			<!-- 版本卡片（左右并列） -->
+			<view class="card-row">
+				<!-- 自律版 -->
+				<view class="card card-discipline" @click="handleSelectVersion(0)">
+					<view class="card-emoji">🥗</view>
+					<view class="card-info">
+						<view class="card-name">自律版</view>
+						<view class="card-desc">专业 · 详细 · 科学</view>
+					</view>
+					<view class="card-features">
+						<view class="feature-item">✅ 完整营养数据</view>
+						<view class="feature-item">✅ 卡路里追踪</view>
+						<view class="feature-item">✅ 数据统计图表</view>
+					</view>
+					<view class="card-btn btn-discipline">
+						<view class="btn-text">选择自律版</view>
+					</view>
+				</view>
+
+				<!-- 嘴馋版 -->
+				<view class="card card-happy" @click="handleSelectVersion(1)">
+					<view class="card-emoji">🎉</view>
+					<view class="card-info">
+						<view class="card-name">嘴馋版</view>
+						<view class="card-desc">可爱 · 轻松 · 趣味</view>
+					</view>
+					<view class="card-features">
+						<view class="feature-item">🌈 糖果色主题</view>
+						<view class="feature-item">🎀 轻量记录</view>
+						<view class="feature-item">✨ 趣味打卡</view>
+					</view>
+					<view class="card-btn btn-happy">
+						<view class="btn-text">选择嘴馋版</view>
+					</view>
+				</view>
+			</view>
+
+			<!-- 底部提示 -->
+			<view class="tip">
+				<view class="tip-text">两种版本可随时切换，数据共享 🔄</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { saveVersionMode, updateVersionMode } from '@/api/auth.uts'
+
+async function handleSelectVersion(mode: number) {
+	try {
+		const res = await updateVersionMode(mode)
+		if (res.code === 200) {
+			saveVersionMode(mode)
+			if (mode === 1) {
+				uni.redirectTo({
+					url: '/pages/MouthCrave/MouthCrave'
+				})
+			} else {
+				uni.redirectTo({
+					url: '/pages/SelfDiscipline/SelfDiscipline'
+				})
+			}
+		} else {
+			uni.showToast({ title: res.message || '设置失败', icon: 'none' })
+		}
+	} catch (e) {
+		console.error('设置版本失败:', e)
+		uni.showToast({ title: '网络错误', icon: 'none' })
+	}
+}
+</script>
+
+<style>
+	@import "./choose.css";
+</style>

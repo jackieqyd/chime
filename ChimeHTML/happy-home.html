@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriLife - 欢乐版</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    #app {
+      width: 375px; height: 812px;
+      position: relative; overflow: hidden;
+      border-radius: 40px;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.1);
+      background: #fff;
+    }
+    .page {
+      display: flex; flex-direction: column;
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; overflow: hidden;
+    }
+    .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    .scroll-content::-webkit-scrollbar { display: none; }
+    .happy-bg { background: linear-gradient(180deg, #fff0f9 0%, #fff8f0 50%, #f0f8ff 100%); }
+    .happy-header { background: linear-gradient(135deg, #f472b6 0%, #fb923c 50%, #fbbf24 100%); }
+    .happy-meal-card { background: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .float-anim { animation: float 3s ease-in-out infinite; }
+    .confetti { position: absolute; border-radius: 50%; opacity: 0.6; }
+    .fab-btn-happy { background: linear-gradient(135deg, #f472b6, #fb923c); box-shadow: 0 4px 20px rgba(244,114,182,0.4); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="page-happy-home" class="page happy-bg">
+    <div class="confetti" style="width:12px;height:12px;background:#f472b6;top:80px;left:30px;"></div>
+    <div class="confetti" style="width:8px;height:8px;background:#fbbf24;top:120px;right:50px;"></div>
+    <div class="confetti" style="width:10px;height:10px;background:#34d399;top:160px;left:60px;"></div>
+
+    <!-- Header -->
+    <div class="happy-header" style="padding:44px 20px 24px;flex-shrink:0;position:relative;overflow:hidden;border-radius:0 0 30px 30px;">
+      <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:rgba(255,255,255,0.1);border-radius:50%;"></div>
+      <div style="position:absolute;bottom:-20px;left:40px;width:100px;height:100px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div id="happy-toggle-btn" style="background:rgba(255,255,255,0.25);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <i data-lucide="shuffle" style="width:13px;height:13px;color:white;"></i>
+          <span style="color:white;font-size:11px;font-weight:600;">自律版</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p style="color:rgba(255,255,255,0.8);font-size:13px;font-weight:500;" id="happy-date-text">今天也要元气满满！</p>
+          <h2 style="color:white;font-size:20px;font-weight:800;margin-top:2px;" id="happy-greeting">嗨，小绿 🌈</h2>
+        </div>
+        <div class="float-anim" style="font-size:56px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15);">🎀</div>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="scroll-content" style="padding:16px 16px 80px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h3 style="font-size:15px;font-weight:800;color:#1f2937;">今天吃了啥？🍽️</h3>
+        <div style="background:linear-gradient(135deg,#fce7f3,#fff0f9);border:1px solid #fbcfe8;border-radius:10px;padding:4px 10px;">
+          <span style="font-size:11px;color:#f472b6;font-weight:700;">Day 7 🎉</span>
+        </div>
+      </div>
+
+      <!-- Breakfast Card -->
+      <div class="happy-meal-card" style="padding:14px;margin-bottom:12px;cursor:pointer;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:50px;height:50px;background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 12px rgba(251,191,36,0.25);flex-shrink:0;">🌅</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div>
+                <span style="font-size:15px;font-weight:800;color:#1f2937;">早餐</span>
+                <span style="font-size:10px;color:#9ca3af;margin-left:6px;">07:30</span>
+              </div>
+              <span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;flex-shrink:0;">✓ 已记录</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+              <img src="https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #fde68a;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=400&q=80" data-viewer-caption="早餐 · 07:30">
+              <img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #fde68a;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=80" data-viewer-caption="早餐 · 07:30">
+              <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #fde68a;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80" data-viewer-caption="早餐 · 07:30">
+              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #fde68a;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80" data-viewer-caption="早餐 · 07:30">
+            </div>
+            <p style="font-size:12px;color:#6b7280;margin-bottom:8px;">燕麦粥 · 鸡蛋 · 牛奶</p>
+            <div style="display:flex;justify-content:flex-end;">
+              <div id="breakfast-detail-btn" style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:8px;padding:4px 10px;cursor:pointer;">
+                <span style="font-size:11px;font-weight:700;color:#92400e;">查看详情</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lunch Card -->
+      <div class="happy-meal-card" style="padding:14px;margin-bottom:12px;cursor:pointer;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:50px;height:50px;background:linear-gradient(135deg,#d1fae5,#6ee7b7);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 12px rgba(52,211,153,0.25);flex-shrink:0;">☀️</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div>
+                <span style="font-size:15px;font-weight:800;color:#1f2937;">午餐</span>
+                <span style="font-size:10px;color:#9ca3af;margin-left:6px;">12:00</span>
+              </div>
+              <span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;flex-shrink:0;">✓ 已记录</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #6ee7b7;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" data-viewer-caption="午餐 · 12:00">
+              <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #6ee7b7;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80" data-viewer-caption="午餐 · 12:00">
+              <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #6ee7b7;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=80" data-viewer-caption="午餐 · 12:00">
+              <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400&q=80" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:1.5px solid #6ee7b7;cursor:pointer;" data-viewer-src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400&q=80" data-viewer-caption="午餐 · 12:00">
+            </div>
+            <p style="font-size:12px;color:#6b7280;margin-bottom:8px;">糙米饭 · 清蒸鱼 · 西兰花…</p>
+            <div style="display:flex;justify-content:flex-end;">
+              <div id="lunch-detail-btn" style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#d1fae5,#6ee7b7);border-radius:8px;padding:4px 10px;cursor:pointer;">
+                <span style="font-size:11px;font-weight:700;color:#065f46;">查看详情</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#065f46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dinner Card (pending) -->
+      <div style="background:white;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:2px dashed #e9d5ff;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:50px;height:50px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;opacity:0.55;">🌙</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:15px;font-weight:800;color:#c4b5fd;">晚餐</span>
+              <span style="background:#f5f3ff;color:#c4b5fd;font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;border:1px dashed #ddd6fe;">待录入</span>
+            </div>
+            <p style="font-size:12px;color:#d1d5db;margin-bottom:10px;">还没有记录晚餐内容</p>
+            <div id="happy-dinner-add-btn" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-radius:10px;padding:6px 14px;cursor:pointer;border:1.5px solid #e9d5ff;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span style="font-size:11px;font-weight:700;color:#7c3aed;">记录晚餐</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Snack Card (pending) -->
+      <div style="background:white;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,0.04);border:2px dashed #fed7aa;padding:14px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:50px;height:50px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;opacity:0.55;">🍎</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:15px;font-weight:800;color:#fdba74;">加餐</span>
+              <span style="background:#fff7ed;color:#fdba74;font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;border:1px dashed #fed7aa;">待录入</span>
+            </div>
+            <p style="font-size:12px;color:#d1d5db;margin-bottom:10px;">记录加餐让营养更完整哦～</p>
+            <div id="happy-snack-add-btn" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border-radius:10px;padding:6px 14px;cursor:pointer;border:1.5px solid #fed7aa;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span style="font-size:11px;font-weight:700;color:#f97316;">记录加餐</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Happy Calendar -->
+      <div class="happy-meal-card" style="padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="font-size:14px;font-weight:800;color:#9d174d;">打卡日历</h3>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div id="happy-cal-prev" style="width:28px;height:28px;background:linear-gradient(135deg,#fce7f3,#fde8b0);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+              <i data-lucide="chevron-left" style="width:14px;height:14px;color:#f472b6;"></i>
+            </div>
+            <span style="font-size:12px;color:#6b7280;font-weight:700;" id="happy-cal-month-label">2025年1月</span>
+            <div id="happy-cal-next" style="width:28px;height:28px;background:linear-gradient(135deg,#fce7f3,#fde8b0);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+              <i data-lucide="chevron-right" style="width:14px;height:14px;color:#f472b6;"></i>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;">
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">日</div>
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">一</div>
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">二</div>
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">三</div>
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">四</div>
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">五</div>
+          <div style="text-align:center;font-size:9px;color:#f9a8d4;font-weight:700;">六</div>
+        </div>
+        <div id="happy-calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
+        <!-- Legend -->
+        <div style="display:flex;gap:12px;margin-top:10px;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <div style="width:10px;height:10px;background:linear-gradient(135deg,#fce7f3,#fde8b0);border:1.5px solid #f472b6;border-radius:4px;"></div>
+            <span style="font-size:10px;color:#9ca3af;">已打卡</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <div style="width:10px;height:10px;border:2px solid #fb923c;border-radius:4px;"></div>
+            <span style="font-size:10px;color:#9ca3af;">今日</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:72px;display:flex;align-items:center;justify-content:space-around;padding:0 8px 8px;background:white;border-top:1px solid #fce7f3;box-shadow:0 -4px 20px rgba(0,0,0,0.06);flex-shrink:0;">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative;">
+        <div id="happy-nav-add" class="fab-btn-happy" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;position:absolute;top:-22px;">
+          <i data-lucide="plus" style="width:26px;height:26px;color:white;"></i>
+        </div>
+        <span style="font-size:10px;color:#9ca3af;font-weight:500;margin-top:33px;">录入</span>
+      </div>
+      <div id="happy-nav-me" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+        <i data-lucide="user" style="width:22px;height:22px;color:#9ca3af;"></i>
+        <span style="font-size:10px;color:#9ca3af;">我的</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Meal Modal -->
+  <div id="date-meal-modal" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;justify-content:flex-end;flex-direction:column;">
+    <div style="background:white;border-radius:24px 24px 0 0;padding:0;max-height:520px;overflow:hidden;display:flex;flex-direction:column;">
+      <div id="date-meal-modal-header" style="padding:16px 20px 12px;background:linear-gradient(135deg,#f472b6,#fb923c);border-radius:24px 24px 0 0;flex-shrink:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-size:16px;font-weight:800;color:white;" id="date-meal-modal-title">1月15日</h3>
+            <p style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:1px;" id="date-meal-modal-sub">今日饮食记录</p>
+          </div>
+          <div id="date-meal-modal-close" style="width:32px;height:32px;background:rgba(255,255,255,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+      </div>
+      <div style="overflow-y:auto;padding:14px 16px 24px;" id="date-meal-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Image Viewer -->
+  <div id="img-viewer-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;">
+    <div id="img-viewer-close" style="position:absolute;top:20px;right:20px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <img id="img-viewer-img" src="" alt="" style="max-width:340px;max-height:560px;border-radius:16px;object-fit:contain;">
+    <p id="img-viewer-caption" style="color:white;margin-top:16px;font-size:14px;text-align:center;"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  if(typeof lucide!=='undefined')lucide.createIcons();
+  updateDateTime();buildHappyCalendar();syncProfileToUI();
+  document.getElementById('happy-toggle-btn')?.addEventListener('click',function(){AppState.currentVersion='discipline';AppState.saveVersion();window.location.href='dis-home.html';});
+  document.getElementById('happy-nav-add')?.addEventListener('click',function(){window.location.href='happy-add-diet.html';});
+  document.getElementById('happy-nav-me')?.addEventListener('click',function(){window.location.href='happy-profile.html';});
+  document.getElementById('breakfast-detail-btn')?.addEventListener('click',function(e){e.stopPropagation();window.location.href='happy-meal-detail.html';});
+  document.getElementById('lunch-detail-btn')?.addEventListener('click',function(e){e.stopPropagation();window.location.href='happy-meal-detail.html';});
+  document.getElementById('happy-dinner-add-btn')?.addEventListener('click',function(e){e.stopPropagation();window.location.href='happy-add-diet.html';});
+  document.getElementById('happy-snack-add-btn')?.addEventListener('click',function(e){e.stopPropagation();window.location.href='happy-add-diet.html';});
+  document.getElementById('happy-cal-prev')?.addEventListener('click',function(){AppState.happyCalOffset--;buildHappyCalendar();});
+  document.getElementById('happy-cal-next')?.addEventListener('click',function(){AppState.happyCalOffset++;buildHappyCalendar();});
+  document.getElementById('date-meal-modal-close')?.addEventListener('click',function(){hideDateMealModal();});
+  document.getElementById('date-meal-modal')?.addEventListener('click',function(e){if(e.target===this)hideDateMealModal();});
+});
+</script>
+</body>
+</html>

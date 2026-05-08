@@ -1,0 +1,30 @@
+# Backend build outputs
+src/Backend/**/bin/
+src/Backend/**/obj/
+src/Backend/**/*.nuget.dgspec.json
+src/Backend/**/project.nuget.cache
+
+# Backend local settings (not to be shared)
+src/Backend/ChimeBackend.Api/appsettings.Development.json
+
+# User-specific settings
+src/Backend/ChimeBackend.Api/Properties/launchSettings.json
+src/Backend/**/*.csproj.user
+
+# IDE
+.vs/
+.vscode/
+.trae/
+.DS_Store
+.github/
+
+# Claude Code
+.claude/
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+
+# Local files
+information.txt

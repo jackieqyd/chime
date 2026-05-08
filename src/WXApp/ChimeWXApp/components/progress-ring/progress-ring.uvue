@@ -1,0 +1,70 @@
+<template>
+	<view class="ring-wrapper" :style="ringWrapperStyle">
+		<view class="ring-track">
+			<view class="ring-fill" :style="ringFillStyle"></view>
+		</view>
+		<view class="ring-center">
+			<slot></slot>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+const props = withDefaults(defineProps<{
+	percent: number
+	size?: number
+	color?: string
+}>(), {
+	size: 140,
+	color: '#FBBF24'
+})
+
+const ringWrapperStyle = {
+	width: props.size + 'rpx',
+	height: props.size + 'rpx'
+}
+
+const ringFillStyle = {
+	width: props.size + 'rpx',
+	height: props.size + 'rpx',
+	backgroundColor: props.color,
+	clipPath: 'inset(' + (100 - props.percent) + '% 0 0 0)'
+}
+</script>
+
+<style>
+.ring-wrapper {
+	position: relative;
+	flex-shrink: 0;
+}
+
+.ring-track {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.2);
+	overflow: hidden;
+}
+
+.ring-fill {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.ring-center {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	z-index: 2;
+}
+</style>
