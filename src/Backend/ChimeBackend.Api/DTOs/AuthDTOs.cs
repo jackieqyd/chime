@@ -2,7 +2,7 @@ namespace ChimeBackend.Api.DTOs;
 
 public record SendCodeRequest(string PhoneNumber);
 public record LoginRequest(string PhoneNumber, string VerificationCode);
-public record MiniProgramLoginRequest(string Code);
+public record MiniProgramLoginRequest(string Code, string? Nickname, string? Avatar);
 public record AppleLoginRequest(string IdentityToken, string AuthorizationCode, int RealUserStatus);
 public record BindPhoneRequest(string PhoneNumber, string VerificationCode);
 public record RefreshTokenRequest(string RefreshToken);

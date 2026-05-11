@@ -30,6 +30,12 @@
 			"style": {
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/profile/profile-first-input",
+			"style": {
+				"navigationStyle": "custom"
+			}
 		}
 	],
 

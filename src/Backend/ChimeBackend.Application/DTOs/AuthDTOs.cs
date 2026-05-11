@@ -4,7 +4,8 @@ public record AuthResult(
     string AccessToken,
     string RefreshToken,
     int ExpiresIn,
-    UserInfoResult User
+    UserInfoResult User,
+    bool IsNewUser
 );
 
 public record UserInfoResult(

@@ -147,10 +147,11 @@ public class AuthAppServiceTests
     {
         // Arrange
         var code = "test_code";
-        var expectedOpenId = $"dev_openid_{code}";
+        var nickname = "微信用户";
+        var avatar = "https://example.com/avatar.jpg";
 
         _userRepoMock
-            .Setup(s => s.GetByOpenIdAsync(expectedOpenId, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByOpenIdAsync(code, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
         _userRepoMock
             .Setup(s => s.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
@@ -163,11 +164,11 @@ public class AuthAppServiceTests
             .Returns(("access_token", "refresh_token", DateTime.UtcNow.AddDays(1)));
 
         // Act
-        var result = await _sut.MiniProgramLoginAsync(code);
+        var result = await _sut.MiniProgramLoginAsync(code, nickname, avatar);
 
         // Assert
         result.Should().NotBeNull();
-        _userRepoMock.Verify(s => s.AddAsync(It.Is<User>(u => u.OpenId == expectedOpenId), It.IsAny<CancellationToken>()), Times.Once);
+        _userRepoMock.Verify(s => s.AddAsync(It.Is<User>(u => u.OpenId == code && u.Nickname == nickname && u.Avatar == avatar), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -178,19 +179,19 @@ public class AuthAppServiceTests
         var existingUser = new User
         {
             Id = 1,
-            OpenId = $"dev_openid_{code}",
+            OpenId = code,
             VersionMode = VersionMode.SelfDiscipline
         };
 
         _userRepoMock
-            .Setup(s => s.GetByOpenIdAsync($"dev_openid_{code}", It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByOpenIdAsync(code, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
         _tokenServiceMock
             .Setup(s => s.GenerateTokens(existingUser))
             .Returns(("access_token", "refresh_token", DateTime.UtcNow.AddDays(1)));
 
         // Act
-        var result = await _sut.MiniProgramLoginAsync(code);
+        var result = await _sut.MiniProgramLoginAsync(code, null, null);
 
         // Assert
         result.Should().NotBeNull();

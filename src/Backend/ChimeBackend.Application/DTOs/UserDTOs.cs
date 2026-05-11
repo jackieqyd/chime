@@ -8,16 +8,8 @@ public record UserProfileResult(
     decimal? Height,
     decimal? Weight,
     int? Age,
-    int VersionMode,
-    int ActivityLevel,
-    int Goal,
+    int? VersionMode,
+    int? ActivityLevel,
+    int? Goal,
     decimal? DailyCalorie
-);
-
-public record DailyCalorieResult(
-    decimal Bmr,
-    decimal Tdee,
-    decimal Recommended,
-    int Goal,
-    string GoalDesc
 );

@@ -1,0 +1,219 @@
+<template>
+	<view class="page">
+		<!-- Header -->
+		<view class="header">
+			<view class="header-deco-1"></view>
+			<view class="header-deco-2"></view>
+			<view class="header-title">完善个人信息</view>
+			<view class="header-sub">帮助我们为你计算每日推荐摄入量</view>
+		</view>
+
+		<!-- Scrollable Content -->
+		<scroll-view class="scroll-area" scroll-y="true">
+			<!-- Form -->
+			<view class="input-card">
+				<!-- Gender -->
+				<view class="form-item">
+					<view class="form-label">性别</view>
+					<picker mode="selector" :value="gender - 1" :range="genderOptions" range-key="label" @change="onGenderChange">
+						<view class="picker-box">
+							<view class="picker-text">{{ genderOptions[gender - 1].label }}</view>
+							<view class="picker-arrow">▼</view>
+						</view>
+					</picker>
+				</view>
+
+				<!-- Age -->
+				<view class="form-item">
+					<view class="form-label">年龄</view>
+					<view class="form-input-wrap">
+						<input
+							class="form-input"
+							:class="{ 'input-error': errors.age }"
+							type="number"
+							v-model="age"
+							placeholder="请输入年龄"
+							placeholder-class="form-input-placeholder"
+							@focus="clearError('age')"
+						></input>
+					</view>
+					<view class="error-text" v-if="errors.age">{{ errors.age }}</view>
+				</view>
+
+				<!-- Height -->
+				<view class="form-item">
+					<view class="form-label">身高 (cm)</view>
+					<view class="form-input-wrap">
+						<input
+							class="form-input"
+							:class="{ 'input-error': errors.height }"
+							type="number"
+							v-model="height"
+							placeholder="请输入身高"
+							placeholder-class="form-input-placeholder"
+							@focus="clearError('height')"
+						></input>
+					</view>
+					<view class="error-text" v-if="errors.height">{{ errors.height }}</view>
+				</view>
+
+				<!-- Weight -->
+				<view class="form-item">
+					<view class="form-label">体重 (kg)</view>
+					<view class="form-input-wrap">
+						<input
+							class="form-input"
+							:class="{ 'input-error': errors.weight }"
+							type="number"
+							v-model="weight"
+							placeholder="请输入体重"
+							placeholder-class="form-input-placeholder"
+							@focus="clearError('weight')"
+						></input>
+					</view>
+					<view class="error-text" v-if="errors.weight">{{ errors.weight }}</view>
+				</view>
+			</view>
+
+			<!-- Privacy -->
+			<view class="privacy-card">
+				<view>
+					<view class="privacy-title">🔒 隐私保护</view>
+					<view class="privacy-desc">你的个人信息仅用于计算每日推荐摄入量，不会被共享或公开。</view>
+				</view>
+			</view>
+		</scroll-view>
+
+		<!-- Bottom Submit -->
+		<view
+			class="submit-btn"
+			:class="{ 'btn-loading': loading }"
+			:disabled="loading"
+			@click="submit"
+		>
+			<view class="loading-spinner" v-if="loading"></view>
+			<view v-else>保存信息</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { ref, reactive } from 'vue'
+import { updateProfile } from '../../api/user'
+import { saveUserProfile } from '../../api/auth'
+
+const gender = ref<number>(1)
+const genderOptions = [{label: '男', value: 1}, {label: '女', value: 2}]
+const age = ref<string>('')
+const height = ref<string>('')
+const weight = ref<string>('')
+const loading = ref(false)
+
+const errors = reactive({
+	age: '',
+	height: '',
+	weight: ''
+})
+
+function onGenderChange(e: any) {
+	gender.value = genderOptions[e.detail.value].value
+}
+
+function clearError(field: 'age' | 'height' | 'weight') {
+	errors[field] = ''
+}
+
+function validate(): boolean {
+	let valid = true
+
+	if (!age.value || age.value.trim() === '') {
+		errors.age = '请输入年龄'
+		valid = false
+	} else {
+		const ageNum = parseInt(age.value)
+		if (isNaN(ageNum) || ageNum < 1 || ageNum > 150) {
+			errors.age = '年龄必须在1-150之间'
+			valid = false
+		} else {
+			errors.age = ''
+		}
+	}
+
+	if (!height.value || height.value.trim() === '') {
+		errors.height = '请输入身高'
+		valid = false
+	} else {
+		const heightNum = parseFloat(height.value)
+		if (isNaN(heightNum) || heightNum < 50 || heightNum > 250) {
+			errors.height = '身高必须在50-250之间'
+			valid = false
+		} else {
+			errors.height = ''
+		}
+	}
+
+	if (!weight.value || weight.value.trim() === '') {
+		errors.weight = '请输入体重'
+		valid = false
+	} else {
+		const weightNum = parseFloat(weight.value)
+		if (isNaN(weightNum) || weightNum < 20 || weightNum > 300) {
+			errors.weight = '体重必须在20-300之间'
+			valid = false
+		} else {
+			errors.weight = ''
+		}
+	}
+
+	return valid
+}
+
+async function submit() {
+	if (loading.value) return
+
+	if (!validate()) return
+
+	loading.value = true
+
+	try {
+		const res = await updateProfile({
+			gender: gender.value,
+			age: parseInt(age.value),
+			height: parseFloat(height.value),
+			weight: parseFloat(weight.value)
+		})
+
+		if (res.code === 200) {
+			// 更新本地存储的用户信息
+			if (res.data) {
+				saveUserProfile(res.data)
+			}
+			uni.showToast({
+				title: '保存成功',
+				icon: 'success',
+				duration: 2000
+			})
+			setTimeout(() => {
+				uni.redirectTo({
+					url: '/pages/SelfDiscipline/SelfDiscipline'
+				})
+			}, 1500)
+		} else {
+			uni.showToast({
+				title: res.message || '保存失败',
+				icon: 'none'
+			})
+		}
+	} catch (e: any) {
+		console.error('保存失败', e)
+		uni.showToast({
+			title: '网络错误，请重试',
+			icon: 'none'
+		})
+	} finally {
+		loading.value = false
+	}
+}
+</script>
+
+<style src="./profile.css"></style>

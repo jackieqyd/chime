@@ -28,9 +28,9 @@ public class UserAppService
             user.Height,
             user.Weight,
             user.Age,
-            (int)user.VersionMode,
-            (int)user.ActivityLevel,
-            user.Goal,
+            (int?)user.VersionMode,
+            (int?)user.ActivityLevel,
+            (int?)user.Goal,
             user.DailyCalorie
         );
     }
@@ -63,6 +63,12 @@ public class UserAppService
         if (goal.HasValue) user.Goal = goal.Value;
         if (dailyCalorie.HasValue) user.DailyCalorie = dailyCalorie.Value;
 
+        // 根据性别、体重、身高、年龄计算BMR并更新DailyCalorie
+        if (user.Gender.HasValue && user.Weight.HasValue && user.Height.HasValue && user.Age.HasValue)
+        {
+            user.DailyCalorie = CalculateBmr(user.Gender.Value, user.Weight.Value, user.Height.Value, user.Age.Value);
+        }
+
         user.UpdatedAt = DateTime.UtcNow;
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync(cancellationToken);
@@ -75,68 +81,19 @@ public class UserAppService
             user.Height,
             user.Weight,
             user.Age,
-            (int)user.VersionMode,
-            (int)user.ActivityLevel,
-            user.Goal,
+            (int?)user.VersionMode,
+            (int?)user.ActivityLevel,
+            (int?)user.Goal,
             user.DailyCalorie
         );
     }
 
-    public async Task<DailyCalorieResult?> GetDailyCalorieAsync(int userId, CancellationToken cancellationToken = default)
+    private static decimal CalculateBmr(Gender gender, decimal weight, decimal height, int age)
     {
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
-        if (user == null) return null;
-
-        var (bmr, tdee, recommended) = CalculateCalories(user);
-        var goalDesc = user.Goal switch
-        {
-            1 => "减脂",
-            2 => "增肌",
-            _ => "维持"
-        };
-
-        return new DailyCalorieResult(bmr, tdee, recommended, user.Goal, goalDesc);
-    }
-
-    private static (decimal bmr, decimal tdee, decimal recommended) CalculateCalories(User user)
-    {
-        decimal bmr;
-        if (user.Gender == Gender.Male)
-        {
-            bmr = 66.47m + (13.75m * (user.Weight ?? 70)) + (5.003m * (user.Height ?? 170)) - (6.755m * (user.Age ?? 30));
-        }
-        else
-        {
-            bmr = 655.1m + (9.563m * (user.Weight ?? 60)) + (1.85m * (user.Height ?? 160)) - (4.676m * (user.Age ?? 30));
-        }
-
-        var activityMultiplier = user.ActivityLevel switch
-        {
-            ActivityLevel.Sedentary => 1.2m,
-            ActivityLevel.Light => 1.375m,
-            ActivityLevel.Moderate => 1.55m,
-            ActivityLevel.High => 1.725m,
-            ActivityLevel.Extreme => 1.9m,
-            _ => 1.375m
-        };
-
-        var tdee = bmr * activityMultiplier;
-
-        decimal recommended;
-        if (user.DailyCalorie.HasValue && user.DailyCalorie > 0)
-        {
-            recommended = user.DailyCalorie.Value;
-        }
-        else
-        {
-            recommended = user.Goal switch
-            {
-                1 => (tdee * 0.8m).Round(),
-                2 => (tdee * 1.1m).Round(),
-                _ => tdee.Round()
-            };
-        }
-
-        return (bmr.Round(2), tdee.Round(2), recommended);
+        // 男性：10*体重 + 6.25*身高 - 5*年龄 + 5
+        // 女性：10*体重 + 6.25*身高 - 5*年龄 - 161
+        return gender == Gender.Male
+            ? 10m * weight + 6.25m * height - 5m * age + 5m
+            : 10m * weight + 6.25m * height - 5m * age - 161m;
     }
 }

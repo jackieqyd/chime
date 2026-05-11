@@ -319,6 +319,7 @@
 <script setup lang="uts">
 import { ref, computed, onMounted } from 'vue'
 import { getFoodRecords } from '../../api/food'
+import { getProfile } from '../../api/user'
 import { round } from '../../api/number'
 
 // ===== 餐次数据 =====
@@ -391,8 +392,19 @@ const totalFat = computed(() => {
 		mealData.value.snack.fat)
 })
 
-// 目标热量（暂时用默认值，后续可从API获取）
-const targetKcal = ref(2100)
+// 目标热量（从用户资料获取）
+const targetKcal = ref(0)
+
+async function loadUserProfile() {
+	try {
+		const res = await getProfile()
+		if (res.code === 200 && res.data && res.data.dailyCalorie) {
+			targetKcal.value = Math.round(res.data.dailyCalorie)
+		}
+	} catch (e) {
+		console.error('加载用户信息失败', e)
+	}
+}
 
 // 摄入百分比
 const intakePercent = computed(() => {
@@ -467,6 +479,7 @@ async function loadMealData() {
 }
 
 onMounted(() => {
+	loadUserProfile()
 	loadMonthRecords(calYear.value, calMonth.value)
 	// 监听返回刷新事件
 	uni.$on('refreshHome', () => {

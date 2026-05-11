@@ -13,6 +13,7 @@ export interface AuthData {
 	refreshToken: string
 	expiresIn: number
 	user: UserInfo | null
+	isNewUser: boolean
 }
 
 export interface UserInfo {

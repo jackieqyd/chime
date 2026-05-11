@@ -21,8 +21,8 @@ public class User
 
     // 偏好设置
     public VersionMode? VersionMode { get; set; } = null;
-    public ActivityLevel ActivityLevel { get; set; } = ActivityLevel.Light;
-    public int Goal { get; set; }              // 0-维持，1-减脂，2-增肌
+    public ActivityLevel? ActivityLevel { get; set; } = null;
+    public int? Goal { get; set; }              // 0-维持，1-减脂，2-增肌
     public decimal? DailyCalorie { get; set; }     // 自定义每日热量目标
 
     // 状态

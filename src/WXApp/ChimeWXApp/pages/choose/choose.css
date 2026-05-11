@@ -48,7 +48,8 @@
 /* ===== 标题区 ===== */
 .header {
 	text-align: center;
-	margin-bottom: 24rpx;
+	margin-top:100rpx;
+	margin-bottom: 104rpx;
 	flex-shrink: 0;
 }
 
@@ -71,20 +72,18 @@
 	display: flex;
 	flex-direction: row;
 	gap: 24rpx;
-	flex: 1;
-	align-items: stretch;
-	min-height: 0;
+	flex-shrink: 0;
 }
 
 /* ===== 版本卡片 ===== */
 .card {
 	flex: 1;
 	border-radius: 48rpx;
-	padding: 32rpx 20rpx;
+	padding: 20rpx 16rpx;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 20rpx;
+	gap: 12rpx;
 	position: relative;
 	overflow: hidden;
 }
@@ -110,7 +109,7 @@
 
 /* 卡片图标 */
 .card-emoji {
-	font-size: 96rpx;
+	font-size: 64rpx;
 	flex-shrink: 0;
 }
 
@@ -121,7 +120,7 @@
 }
 
 .card-name {
-	font-size: 32rpx;
+	font-size: 28rpx;
 	font-weight: 800;
 }
 
@@ -151,8 +150,9 @@
 .card-features {
 	width: 100%;
 	border-radius: 16rpx;
-	padding: 14rpx 12rpx;
-	flex: 1;
+	padding: 20rpx 30rpx;
+	flex-shrink: 0;
+	min-height: 100rpx;
 }
 
 .card-discipline .card-features {
@@ -173,7 +173,7 @@
 .card-btn {
 	width: 100%;
 	border-radius: 24rpx;
-	padding: 16rpx 0;
+	padding: 20rpx 0;
 	text-align: center;
 	flex-shrink: 0;
 }
