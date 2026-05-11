@@ -51,20 +51,22 @@ public class AuthAppService
         }
 
         var (accessToken, refreshToken, expiresAt) = _tokenService.GenerateTokens(user);
-        return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null));
+        return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null), false);
     }
 
-    public async Task<AuthResult?> MiniProgramLoginAsync(string code, CancellationToken cancellationToken = default)
+    public async Task<AuthResult?> MiniProgramLoginAsync(string code, string? nickname, string? avatar, CancellationToken cancellationToken = default)
     {
         var openId = code;
 
         var user = await _userRepository.GetByOpenIdAsync(openId, cancellationToken);
         if (user == null)
         {
-            // 新用户：创建用户但VersionMode不设置（为null），让前端引导选择版本
+            // 新用户：创建用户，昵称和头像来自微信授权，VersionMode不设置（为null），让前端引导选择版本
             user = new User
             {
                 OpenId = openId,
+                Nickname = nickname,
+                Avatar = avatar,
                 VersionMode = null,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -74,12 +76,12 @@ public class AuthAppService
 
             // 返回新用户信息，VersionMode为null
             var (accessToken, refreshToken, expiresAt) = _tokenService.GenerateTokens(user);
-            return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, null));
+            return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, null), true);
         }
 
-        // 已有用户：返回完整信息
+        // 已有用户：返回完整信息，标记为非新用户
         var (token, refreshToken2, expiresAt2) = _tokenService.GenerateTokens(user);
-        return new AuthResult(token, refreshToken2, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null));
+        return new AuthResult(token, refreshToken2, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null), false);
     }
 
     public async Task<AuthResult?> AppleLoginAsync(string identityToken, string authorizationCode, int realUserStatus, CancellationToken cancellationToken = default)
@@ -101,7 +103,7 @@ public class AuthAppService
         }
 
         var (accessToken, refreshToken, expiresAt) = _tokenService.GenerateTokens(user);
-        return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null));
+        return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null), false);
     }
 
     public async Task<AuthResult?> BindPhoneAsync(int userId, string phoneNumber, string verificationCode, CancellationToken cancellationToken = default)
@@ -117,7 +119,7 @@ public class AuthAppService
         await _userRepository.SaveChangesAsync(cancellationToken);
 
         var (accessToken, refreshToken, expiresAt) = _tokenService.GenerateTokens(user);
-        return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null));
+        return new AuthResult(accessToken, refreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null), false);
     }
 
     public async Task<AuthResult?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
@@ -129,6 +131,6 @@ public class AuthAppService
         if (user == null) return null;
 
         var (accessToken, newRefreshToken, expiresAt) = _tokenService.GenerateTokens(user);
-        return new AuthResult(accessToken, newRefreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null));
+        return new AuthResult(accessToken, newRefreshToken, 86400, new UserInfoResult(user.Id, user.Nickname, user.Avatar, user.VersionMode.HasValue ? (int)user.VersionMode.Value : null), false);
     }
 }

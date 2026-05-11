@@ -85,24 +85,6 @@ public class UsersController : ControllerBase
             result.DailyCalorie
         ), "更新成功"));
     }
-
-    [HttpGet("daily-calorie")]
-    public async Task<ActionResult<ApiResponse<DailyCalorieDto>>> GetDailyCalorie(CancellationToken cancellationToken)
-    {
-        var userId = GetUserId();
-        var result = await _userAppService.GetDailyCalorieAsync(userId, cancellationToken);
-
-        if (result == null)
-            return NotFound(ApiResponse<DailyCalorieDto>.Fail(404, "用户不存在"));
-
-        return Ok(ApiResponse<DailyCalorieDto>.Success(new DailyCalorieDto(
-            result.Bmr,
-            result.Tdee,
-            result.Recommended,
-            result.Goal,
-            result.GoalDesc
-        )));
-    }
 }
 
 public record UserProfileDto(
@@ -113,9 +95,9 @@ public record UserProfileDto(
     decimal? Height,
     decimal? Weight,
     int? Age,
-    int VersionMode,
-    int ActivityLevel,
-    int Goal,
+    int? VersionMode,
+    int? ActivityLevel,
+    int? Goal,
     decimal? DailyCalorie
 );
 
@@ -130,12 +112,4 @@ public record UpdateProfileRequest(
     int? ActivityLevel,
     int? Goal,
     decimal? DailyCalorie
-);
-
-public record DailyCalorieDto(
-    decimal Bmr,
-    decimal Tdee,
-    decimal Recommended,
-    int Goal,
-    string GoalDesc
 );

@@ -56,7 +56,7 @@ public class AuthController : ControllerBase
         [FromBody] MiniProgramLoginRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _authAppService.MiniProgramLoginAsync(request.Code, cancellationToken);
+        var result = await _authAppService.MiniProgramLoginAsync(request.Code, request.Nickname, request.Avatar, cancellationToken);
 
         return Ok(ApiResponse<AuthResponse>.Success(new AuthResponse(
             result!.AccessToken,

@@ -21,5 +21,6 @@
     "include": []
   },
   "appid": "wxe6be0445ca2c7875",
-  "editorSetting": {}
+  "editorSetting": {},
+  "lazyCodeLoading": "requiredComponents"
 }

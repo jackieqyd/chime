@@ -93,6 +93,8 @@ public class FoodRecordAppService
 
         var mealTypeEnum = mealType.HasValue ? (MealType)mealType.Value : (MealType?)null;
 
+        var totalCount = await _foodRecordRepository.CountAsync(
+            userId, startDate, endDate, mealTypeEnum, cancellationToken);
         var records = await _foodRecordRepository.QueryAsync(
             userId, startDate, endDate, mealTypeEnum, page, pageSize, cancellationToken);
 
@@ -107,7 +109,7 @@ public class FoodRecordAppService
             ))
             .ToList();
 
-        return new FoodRecordListResult(dtos, dtos.Count, page, pageSize);
+        return new FoodRecordListResult(dtos, totalCount, page, pageSize);
     }
 
     public async Task<bool> DeleteRecordAsync(

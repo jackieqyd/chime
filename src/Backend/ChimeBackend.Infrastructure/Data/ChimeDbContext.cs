@@ -27,8 +27,8 @@ public class ChimeDbContext : DbContext
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETDATE()");
             entity.Property(e => e.Gender).HasConversion<int>();
             entity.Property(e => e.VersionMode).HasConversion<int?>();
-            entity.Property(e => e.ActivityLevel).HasConversion<int>();
-            entity.Property(e => e.Goal).HasConversion<int>();
+            entity.Property(e => e.ActivityLevel).HasConversion<int?>();
+            entity.Property(e => e.Goal).HasConversion<int?>();
             entity.Property(e => e.Status).HasConversion<int>();
             entity.HasIndex(e => e.OpenId).IsUnique();
             entity.HasIndex(e => e.PhoneNumber).IsUnique();

@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="uts">
-import { saveVersionMode, updateVersionMode } from '@/api/auth.uts'
+import { saveVersionMode, updateVersionMode, hasUserBasicInfo } from '@/api/auth.uts'
 
 async function handleSelectVersion(mode: number) {
 	try {
@@ -70,9 +70,16 @@ async function handleSelectVersion(mode: number) {
 					url: '/pages/MouthCrave/MouthCrave'
 				})
 			} else {
-				uni.redirectTo({
-					url: '/pages/SelfDiscipline/SelfDiscipline'
-				})
+				// 自律版：检查是否有基础信息
+				if (!hasUserBasicInfo()) {
+					uni.redirectTo({
+						url: '/pages/profile/profile-first-input'
+					})
+				} else {
+					uni.redirectTo({
+						url: '/pages/SelfDiscipline/SelfDiscipline'
+					})
+				}
 			}
 		} else {
 			uni.showToast({ title: res.message || '设置失败', icon: 'none' })

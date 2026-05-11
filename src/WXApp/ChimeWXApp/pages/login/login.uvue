@@ -25,7 +25,7 @@
 				<view class="logo-wrapper">
 					<view class="logo-glow"></view>
 					<view class="logo-shadow"></view>
-					<image class="logo-img" src="/static/image/447388acbe767e7771784873d340285b10ac3a4c.png" mode="aspectFit"></image>
+					<image class="logo-img" src="/static/image/447388acbe767e7771784873d340285b10ac3a4c.jpg" mode="aspectFit"></image>
 				</view>
 				<text class="title">舌尖账本</text>
 				<text class="subtitle">科学饮食 · 健康生活 · 活力每天</text>
@@ -33,9 +33,10 @@
 
 			<!-- 按钮区 -->
 			<view class="btn-area">
-				<view class="login-btn" @click="handleWxLogin">
+				<!-- 主登录按钮 -->
+				<view class="login-btn" :class="{ 'btn-disabled': loading }" @click="handleWxLogin">
 					<image class="wechat-icon" src="/static/image/wechaticon.png" mode="aspectFit"></image>
-					<text class="login-btn-text">微信登录</text>
+					<text class="login-btn-text">{{ loading ? '处理中...' : '微信登录' }}</text>
 				</view>
 			</view>
 		</view>
@@ -43,14 +44,17 @@
 </template>
 
 <script setup lang="uts">
-import { miniProgramLogin, saveAuthData, getOpenIdFromWx } from '@/api/auth.uts'
+import { ref } from 'vue'
+import { miniProgramLogin, saveAuthData, getOpenIdFromWx, saveUserProfile, getUserProfileApi, hasUserBasicInfo } from '@/api/auth.uts'
 
 const loading = ref(false)
 
 async function handleWxLogin() {
+	if (loading.value) return
 	loading.value = true
 
 	try {
+		// 1. 获取登录凭证
 		const loginRes = await wx.login()
 		if (!loginRes.code) {
 			uni.showToast({ title: '获取登录凭证失败', icon: 'none' })
@@ -58,26 +62,71 @@ async function handleWxLogin() {
 			return
 		}
 
+		// 2. 获取 openid
 		const openid = await getOpenIdFromWx(loginRes.code)
-		const res = await miniProgramLogin(openid)
-		if (res.code === 200 && res.data) {
-			saveAuthData(res.data)
-			const userInfo = res.data.user
-			if (userInfo && (userInfo.versionMode === null || userInfo.versionMode === undefined)) {
-				uni.redirectTo({
-					url: '/pages/choose/choose'
+
+		// 3. 先用 code 调用后端，检查是否为新用户
+		const checkRes = await miniProgramLogin(openid)
+		if (checkRes.code !== 200 || !checkRes.data) {
+			uni.showToast({ title: checkRes.message || '登录失败', icon: 'none' })
+			loading.value = false
+			return
+		}
+
+		// 4. 如果是新用户，获取昵称头像并更新
+		if (checkRes.data.isNewUser) {
+			let nickname: string | undefined
+			let avatar: string | undefined
+
+			try {
+				const profileRes = await new Promise<any>((resolve, reject) => {
+					wx.getUserProfile({
+						desc: '用于完善个人资料',
+						success: resolve,
+						fail: reject
+					})
 				})
-			} else if (userInfo.versionMode === 1) {
-				uni.redirectTo({
-					url: '/pages/MouthCrave/MouthCrave'
-				})
-			} else {
-				uni.redirectTo({
-					url: '/pages/SelfDiscipline/SelfDiscipline'
-				})
+				nickname = profileRes.userInfo.nickName
+				avatar = profileRes.userInfo.avatarUrl
+			} catch (e) {
+				console.warn('用户未授权获取昵称头像', e)
 			}
+
+			// 用昵称头像再次调用后端更新用户信息
+			const updateRes = await miniProgramLogin(openid, nickname, avatar)
+			if (updateRes.code !== 200 || !updateRes.data) {
+				uni.showToast({ title: updateRes.message || '登录失败', icon: 'none' })
+				loading.value = false
+				return
+			}
+			saveAuthData(updateRes.data)
 		} else {
-			uni.showToast({ title: res.message || '登录失败', icon: 'none' })
+			// 已有用户，直接保存登录信息
+			saveAuthData(checkRes.data)
+		}
+
+		// 5. 获取完整用户信息并保存
+		try {
+			const profileRes = await getUserProfileApi()
+			if (profileRes.code === 200 && profileRes.data) {
+				saveUserProfile(profileRes.data)
+			}
+		} catch (e) {
+			console.error('获取用户信息失败', e)
+		}
+
+		// 6. 根据 versionMode 跳转页面
+		const userInfo = checkRes.data.user
+		if (userInfo && (userInfo.versionMode === null || userInfo.versionMode === undefined)) {
+			uni.redirectTo({ url: '/pages/choose/choose' })
+		} else if (userInfo.versionMode === 1) {
+			uni.redirectTo({ url: '/pages/MouthCrave/MouthCrave' })
+		} else {
+			if (!hasUserBasicInfo()) {
+				uni.redirectTo({ url: '/pages/profile/profile-first-input' })
+			} else {
+				uni.redirectTo({ url: '/pages/SelfDiscipline/SelfDiscipline' })
+			}
 		}
 	} catch (e: any) {
 		console.error('登录失败:', e)

@@ -1,0 +1,29 @@
+import { request } from './request'
+
+export interface UpdateProfileParams {
+	nickname?: string
+	avatar?: string
+	gender?: number
+	height?: number
+	weight?: number
+	age?: number
+	versionMode?: number
+	activityLevel?: number
+	goal?: number
+	dailyCalorie?: number
+}
+
+export function updateProfile(params: UpdateProfileParams): Promise<any> {
+	return request({
+		url: '/api/users',
+		method: 'PUT',
+		data: params
+	})
+}
+
+export function getProfile(): Promise<any> {
+	return request({
+		url: '/api/users',
+		method: 'GET'
+	})
+}
