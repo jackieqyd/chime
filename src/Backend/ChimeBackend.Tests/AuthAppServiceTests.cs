@@ -12,6 +12,7 @@ public class AuthAppServiceTests
     private readonly Mock<IUserRepository> _userRepoMock;
     private readonly Mock<ITokenService> _tokenServiceMock;
     private readonly Mock<IVerificationCodeService> _verificationCodeServiceMock;
+    private readonly Mock<IWxService> _wxServiceMock;
     private readonly AuthAppService _sut;
 
     public AuthAppServiceTests()
@@ -19,10 +20,12 @@ public class AuthAppServiceTests
         _userRepoMock = new Mock<IUserRepository>();
         _tokenServiceMock = new Mock<ITokenService>();
         _verificationCodeServiceMock = new Mock<IVerificationCodeService>();
+        _wxServiceMock = new Mock<IWxService>();
         _sut = new AuthAppService(
             _userRepoMock.Object,
             _tokenServiceMock.Object,
-            _verificationCodeServiceMock.Object
+            _verificationCodeServiceMock.Object,
+            _wxServiceMock.Object
         );
     }
 
@@ -147,11 +150,15 @@ public class AuthAppServiceTests
     {
         // Arrange
         var code = "test_code";
+        var openid = $"openid_{code}";
         var nickname = "微信用户";
         var avatar = "https://example.com/avatar.jpg";
 
+        _wxServiceMock
+            .Setup(s => s.GetOpenIdAsync(code, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(openid);
         _userRepoMock
-            .Setup(s => s.GetByOpenIdAsync(code, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByOpenIdAsync(openid, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
         _userRepoMock
             .Setup(s => s.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
@@ -168,7 +175,7 @@ public class AuthAppServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        _userRepoMock.Verify(s => s.AddAsync(It.Is<User>(u => u.OpenId == code && u.Nickname == nickname && u.Avatar == avatar), It.IsAny<CancellationToken>()), Times.Once);
+        _userRepoMock.Verify(s => s.AddAsync(It.Is<User>(u => u.OpenId == openid && u.Nickname == nickname && u.Avatar == avatar), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -176,15 +183,19 @@ public class AuthAppServiceTests
     {
         // Arrange
         var code = "test_code";
+        var openid = $"openid_{code}";
         var existingUser = new User
         {
             Id = 1,
-            OpenId = code,
+            OpenId = openid,
             VersionMode = VersionMode.SelfDiscipline
         };
 
+        _wxServiceMock
+            .Setup(s => s.GetOpenIdAsync(code, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(openid);
         _userRepoMock
-            .Setup(s => s.GetByOpenIdAsync(code, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetByOpenIdAsync(openid, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
         _tokenServiceMock
             .Setup(s => s.GenerateTokens(existingUser))

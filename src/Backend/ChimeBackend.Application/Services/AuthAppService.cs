@@ -10,15 +10,18 @@ public class AuthAppService
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
     private readonly IVerificationCodeService _verificationCodeService;
+    private readonly IWxService _wxService;
 
     public AuthAppService(
         IUserRepository userRepository,
         ITokenService tokenService,
-        IVerificationCodeService verificationCodeService)
+        IVerificationCodeService verificationCodeService,
+        IWxService wxService)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
         _verificationCodeService = verificationCodeService;
+        _wxService = wxService;
     }
 
     public bool ValidateCode(string phoneNumber, string code)
@@ -56,7 +59,8 @@ public class AuthAppService
 
     public async Task<AuthResult?> MiniProgramLoginAsync(string code, string? nickname, string? avatar, CancellationToken cancellationToken = default)
     {
-        var openId = code;
+        // 通过微信服务换取 openid（AppSecret 只在后端，不暴露给前端）
+        var openId = await _wxService.GetOpenIdAsync(code, cancellationToken);
 
         var user = await _userRepository.GetByOpenIdAsync(openId, cancellationToken);
         if (user == null)
