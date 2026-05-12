@@ -111,7 +111,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if (app.Environment.IsDevelopment())
+if (builder.Configuration.GetValue<bool>("Swagger:Enabled", false))
 {
     app.UseSwagger();
     app.UseSwaggerUI();
