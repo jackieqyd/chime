@@ -1,7 +1,0 @@
-// 微信小程序配置
-// 敏感信息不应提交到代码仓库，实际项目中应通过环境变量或远程配置获取
-export const wxConfig = {
-	appid: 'wxe6be0445ca2c7875',
-	appSecret: 'YOUR_APP_SECRET_HERE', // 替换为实际密钥，或通过后端接口获取
-	// 生产环境建议通过后端接口获取 appSecret，避免前端暴露
-}

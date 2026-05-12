@@ -45,7 +45,7 @@
 
 <script setup lang="uts">
 import { ref } from 'vue'
-import { miniProgramLogin, saveAuthData, getOpenIdFromWx, saveUserProfile, getUserProfileApi, hasUserBasicInfo } from '@/api/auth.uts'
+import { miniProgramLogin, saveAuthData, saveUserProfile, getUserProfileApi, hasUserBasicInfo } from '@/api/auth.uts'
 
 const loading = ref(false)
 
@@ -62,18 +62,17 @@ async function handleWxLogin() {
 			return
 		}
 
-		// 2. 获取 openid
-		const openid = await getOpenIdFromWx(loginRes.code)
+		const code = loginRes.code
 
-		// 3. 先用 code 调用后端，检查是否为新用户
-		const checkRes = await miniProgramLogin(openid)
+		// 2. 先用 code 调用后端（后端内部换取 openid），检查是否为新用户
+		const checkRes = await miniProgramLogin(code)
 		if (checkRes.code !== 200 || !checkRes.data) {
 			uni.showToast({ title: checkRes.message || '登录失败', icon: 'none' })
 			loading.value = false
 			return
 		}
 
-		// 4. 如果是新用户，获取昵称头像并更新
+		// 3. 如果是新用户，获取昵称头像并更新
 		if (checkRes.data.isNewUser) {
 			let nickname: string | undefined
 			let avatar: string | undefined
@@ -93,7 +92,7 @@ async function handleWxLogin() {
 			}
 
 			// 用昵称头像再次调用后端更新用户信息
-			const updateRes = await miniProgramLogin(openid, nickname, avatar)
+			const updateRes = await miniProgramLogin(code, nickname, avatar)
 			if (updateRes.code !== 200 || !updateRes.data) {
 				uni.showToast({ title: updateRes.message || '登录失败', icon: 'none' })
 				loading.value = false
@@ -105,7 +104,7 @@ async function handleWxLogin() {
 			saveAuthData(checkRes.data)
 		}
 
-		// 5. 获取完整用户信息并保存
+		// 4. 获取完整用户信息并保存
 		try {
 			const profileRes = await getUserProfileApi()
 			if (profileRes.code === 200 && profileRes.data) {
@@ -115,7 +114,7 @@ async function handleWxLogin() {
 			console.error('获取用户信息失败', e)
 		}
 
-		// 6. 根据 versionMode 跳转页面
+		// 5. 根据 versionMode 跳转页面
 		const userInfo = checkRes.data.user
 		if (userInfo && (userInfo.versionMode === null || userInfo.versionMode === undefined)) {
 			uni.redirectTo({ url: '/pages/choose/choose' })

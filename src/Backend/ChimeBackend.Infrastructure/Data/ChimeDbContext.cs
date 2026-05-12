@@ -52,7 +52,8 @@ public class ChimeDbContext : DbContext
             entity.Property(e => e.Price).HasPrecision(18,2);
             entity.Property(e => e.MealType).HasConversion<int>();
             entity.Property(e => e.RecordDate).HasColumnType("date");
-            entity.HasIndex(e => new { e.UserId, e.RecordDate });
+            entity.HasIndex(e => new { e.UserId, e.MealType, e.RecordDate });
+            entity.HasIndex(e => new { e.UserId, e.RecordDate, e.CreatedAt });
             entity.HasOne(e => e.User)
                 .WithMany(u => u.FoodRecords)
                 .HasForeignKey(e => e.UserId)

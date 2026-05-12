@@ -3,6 +3,7 @@ using ChimeBackend.Application.Services;
 using ChimeBackend.Domain.Repositories;
 using ChimeBackend.Infrastructure.Data;
 using ChimeBackend.Infrastructure.Repositories;
+using ChimeBackend.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -19,11 +20,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configure EF Core with multiple databases
+var chimeDbConnection = Environment.GetEnvironmentVariable("CHIME_DB_CONNECTION")
+    ?? throw new InvalidOperationException("CHIME_DB_CONNECTION environment variable is not set");
+var foodLibraryDbConnection = Environment.GetEnvironmentVariable("FOOD_LIBRARY_DB_CONNECTION")
+    ?? throw new InvalidOperationException("FOOD_LIBRARY_DB_CONNECTION environment variable is not set");
+
 builder.Services.AddDbContext<ChimeDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ChimeDb")));
+    options.UseSqlServer(chimeDbConnection));
 
 builder.Services.AddDbContext<FoodLibraryDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("FoodLibraryDb")));
+    options.UseSqlServer(foodLibraryDbConnection));
 
 // Configure JWT Authentication
 var jwtSettings = new JwtSettings();
@@ -56,6 +62,13 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<IVerificationCodeService, InMemoryVerificationCodeService>();
 builder.Services.AddHttpClient("WeChat");
+builder.Services.AddScoped<IWxService>(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient("WeChat");
+    var logger = sp.GetRequiredService<ILogger<WxService>>();
+    return new WxService(httpClient, logger);
+});
 
 // Register repositories
 builder.Services.AddScoped<IFoodRecordRepository, FoodRecordRepository>();
