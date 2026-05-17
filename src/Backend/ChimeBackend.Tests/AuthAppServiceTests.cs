@@ -13,6 +13,7 @@ public class AuthAppServiceTests
     private readonly Mock<ITokenService> _tokenServiceMock;
     private readonly Mock<IVerificationCodeService> _verificationCodeServiceMock;
     private readonly Mock<IWxService> _wxServiceMock;
+    private readonly Mock<ILogService> _logServiceMock;
     private readonly AuthAppService _sut;
 
     public AuthAppServiceTests()
@@ -21,11 +22,13 @@ public class AuthAppServiceTests
         _tokenServiceMock = new Mock<ITokenService>();
         _verificationCodeServiceMock = new Mock<IVerificationCodeService>();
         _wxServiceMock = new Mock<IWxService>();
+        _logServiceMock = new Mock<ILogService>();
         _sut = new AuthAppService(
             _userRepoMock.Object,
             _tokenServiceMock.Object,
             _verificationCodeServiceMock.Object,
-            _wxServiceMock.Object
+            _wxServiceMock.Object,
+            _logServiceMock.Object
         );
     }
 
