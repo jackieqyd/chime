@@ -12,18 +12,21 @@ public class FoodRecordAppService
     private readonly IFoodRecordRepository _foodRecordRepository;
     private readonly IDailySummaryRepository _dailySummaryRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ILogService _logService;
 
     public FoodRecordAppService(
         IFoodRecordRepository foodRecordRepository,
         IDailySummaryRepository dailySummaryRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ILogService logService)
     {
         _foodRecordRepository = foodRecordRepository;
         _dailySummaryRepository = dailySummaryRepository;
         _userRepository = userRepository;
+        _logService = logService;
     }
 
-    public async Task<FoodRecordResult> AddRecordAsync(
+    public async Task<FoodRecordResult?> AddRecordAsync(
         int userId,
         DateTime recordDate,
         int mealType,
@@ -33,24 +36,32 @@ public class FoodRecordAppService
         string? remark,
         CancellationToken cancellationToken = default)
     {
-        var mealTypeEnum = (MealType)mealType;
-        var records = foods.Select(f => BuildFoodRecord(userId, recordDate, mealTypeEnum, f, photoUrl, photoLocalPath, remark)).ToList();
+        try
+        {
+            var mealTypeEnum = (MealType)mealType;
+            var records = foods.Select(f => BuildFoodRecord(userId, recordDate, mealTypeEnum, f, photoUrl, photoLocalPath, remark)).ToList();
 
-        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-        await _foodRecordRepository.AddRangeAsync(records, cancellationToken);
-        await UpdateDailySummaryAsync(userId, recordDate, cancellationToken);
-        transaction.Complete();
+            using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            await _foodRecordRepository.AddRangeAsync(records, cancellationToken);
+            await UpdateDailySummaryAsync(userId, recordDate, cancellationToken);
+            transaction.Complete();
 
-        return new FoodRecordResult(
-            records.First().Id,
-            recordDate,
-            mealType,
-            records.Select(r => ToFoodItemResult(r)).ToList(),
-            photoUrl
-        );
+            return new FoodRecordResult(
+                records.First().Id,
+                recordDate,
+                mealType,
+                records.Select(r => ToFoodItemResult(r)).ToList(),
+                photoUrl
+            );
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("AddRecordAsync failed: UserId={UserId}, Date={Date}, MealType={MealType}", ex, userId, recordDate, mealType);
+            return null;
+        }
     }
 
-    public async Task<FoodRecordResult> ReplaceRecordsAsync(
+    public async Task<FoodRecordResult?> ReplaceRecordsAsync(
         int userId,
         DateTime recordDate,
         int mealType,
@@ -60,26 +71,34 @@ public class FoodRecordAppService
         string? remark,
         CancellationToken cancellationToken = default)
     {
-        var mealTypeEnum = (MealType)mealType;
+        try
+        {
+            var mealTypeEnum = (MealType)mealType;
 
-        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-        await _foodRecordRepository.RemoveRangeAsync(userId, recordDate, mealTypeEnum, cancellationToken);
+            using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            await _foodRecordRepository.RemoveRangeAsync(userId, recordDate, mealTypeEnum, cancellationToken);
 
-        var records = foods.Select(f => BuildFoodRecord(userId, recordDate, mealTypeEnum, f, photoUrl, photoLocalPath, remark)).ToList();
-        await _foodRecordRepository.AddRangeAsync(records, cancellationToken);
-        await UpdateDailySummaryAsync(userId, recordDate, cancellationToken);
-        transaction.Complete();
+            var records = foods.Select(f => BuildFoodRecord(userId, recordDate, mealTypeEnum, f, photoUrl, photoLocalPath, remark)).ToList();
+            await _foodRecordRepository.AddRangeAsync(records, cancellationToken);
+            await UpdateDailySummaryAsync(userId, recordDate, cancellationToken);
+            transaction.Complete();
 
-        return new FoodRecordResult(
-            records.First().Id,
-            recordDate,
-            mealType,
-            records.Select(r => ToFoodItemResult(r)).ToList(),
-            photoUrl
-        );
+            return new FoodRecordResult(
+                records.First().Id,
+                recordDate,
+                mealType,
+                records.Select(r => ToFoodItemResult(r)).ToList(),
+                photoUrl
+            );
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("ReplaceRecordsAsync failed: UserId={UserId}, Date={Date}, MealType={MealType}", ex, userId, recordDate, mealType);
+            return null;
+        }
     }
 
-    public async Task<FoodRecordListResult> QueryRecordsAsync(
+    public async Task<FoodRecordListResult?> QueryRecordsAsync(
         int userId,
         DateTime? startDate,
         DateTime? endDate,
@@ -88,28 +107,36 @@ public class FoodRecordAppService
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 50) pageSize = 20;
+        try
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 50) pageSize = 20;
 
-        var mealTypeEnum = mealType.HasValue ? (MealType)mealType.Value : (MealType?)null;
+            var mealTypeEnum = mealType.HasValue ? (MealType)mealType.Value : (MealType?)null;
 
-        var totalCount = await _foodRecordRepository.CountAsync(
-            userId, startDate, endDate, mealTypeEnum, cancellationToken);
-        var records = await _foodRecordRepository.QueryAsync(
-            userId, startDate, endDate, mealTypeEnum, page, pageSize, cancellationToken);
+            var totalCount = await _foodRecordRepository.CountAsync(
+                userId, startDate, endDate, mealTypeEnum, cancellationToken);
+            var records = await _foodRecordRepository.QueryAsync(
+                userId, startDate, endDate, mealTypeEnum, page, pageSize, cancellationToken);
 
-        var dtos = records
-            .GroupBy(r => new { r.RecordDate, r.MealType })
-            .Select(g => new FoodRecordResult(
-                g.First().Id,
-                g.Key.RecordDate,
-                (int)g.Key.MealType,
-                g.Select(f => ToFoodItemResult(f)).ToList(),
-                g.First().PhotoUrl
-            ))
-            .ToList();
+            var dtos = records
+                .GroupBy(r => new { r.RecordDate, r.MealType })
+                .Select(g => new FoodRecordResult(
+                    g.First().Id,
+                    g.Key.RecordDate,
+                    (int)g.Key.MealType,
+                    g.Select(f => ToFoodItemResult(f)).ToList(),
+                    g.First().PhotoUrl
+                ))
+                .ToList();
 
-        return new FoodRecordListResult(dtos, totalCount, page, pageSize);
+            return new FoodRecordListResult(dtos, totalCount, page, pageSize);
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("QueryRecordsAsync failed: UserId={UserId}", ex, userId);
+            return null;
+        }
     }
 
     public async Task<bool> DeleteRecordAsync(
@@ -117,57 +144,73 @@ public class FoodRecordAppService
         int userId,
         CancellationToken cancellationToken = default)
     {
-        var record = await _foodRecordRepository.GetByIdAsync(id, cancellationToken);
-        if (record == null || record.UserId != userId)
+        try
+        {
+            var record = await _foodRecordRepository.GetByIdAsync(id, cancellationToken);
+            if (record == null || record.UserId != userId)
+                return false;
+
+            var recordDate = record.RecordDate;
+            _foodRecordRepository.Remove(record);
+            await UpdateDailySummaryAsync(userId, recordDate, cancellationToken);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("DeleteRecordAsync failed: RecordId={RecordId}, UserId={UserId}", ex, id, userId);
             return false;
-
-        var recordDate = record.RecordDate;
-        _foodRecordRepository.Remove(record);
-        await UpdateDailySummaryAsync(userId, recordDate, cancellationToken);
-
-        return true;
+        }
     }
 
-    public async Task<DailySummaryResult> GetDailySummaryAsync(
+    public async Task<DailySummaryResult?> GetDailySummaryAsync(
         int userId,
         DateTime date,
         CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
-        var recommendedCalories = CalculateRecommendedCalories(user);
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+            var recommendedCalories = CalculateRecommendedCalories(user);
 
-        var records = await _foodRecordRepository.GetByUserIdAndDateAsync(
-            userId, date, cancellationToken);
+            var records = await _foodRecordRepository.GetByUserIdAndDateAsync(
+                userId, date, cancellationToken);
 
-        var totalCalories = records.Sum(r => r.Calories);
-        var totalProtein = records.Sum(r => r.Protein);
-        var totalFat = records.Sum(r => r.Fat);
-        var totalCarbohydrate = records.Sum(r => r.Carbohydrate);
-        var totalIron = records.Sum(r => r.Iron ?? 0);
-        var totalSodium = records.Sum(r => r.Sodium ?? 0);
-        var totalPrice = records.Sum(r => r.Price ?? 0);
+            var totalCalories = records.Sum(r => r.Calories);
+            var totalProtein = records.Sum(r => r.Protein);
+            var totalFat = records.Sum(r => r.Fat);
+            var totalCarbohydrate = records.Sum(r => r.Carbohydrate);
+            var totalIron = records.Sum(r => r.Iron ?? 0);
+            var totalSodium = records.Sum(r => r.Sodium ?? 0);
+            var totalPrice = records.Sum(r => r.Price ?? 0);
 
-        var mealBreakdown = records
-            .GroupBy(r => r.MealType)
-            .ToDictionary(
-                g => g.Key.ToString().ToLower(),
-                g => new MealBreakdownResult(g.Sum(r => r.Calories), g.Count())
+            var mealBreakdown = records
+                .GroupBy(r => r.MealType)
+                .ToDictionary(
+                    g => g.Key.ToString().ToLower(),
+                    g => new MealBreakdownResult(g.Sum(r => r.Calories), g.Count())
+                );
+
+            return new DailySummaryResult(
+                date,
+                totalCalories.Round(),
+                totalProtein.Round(),
+                totalFat.Round(),
+                totalCarbohydrate.Round(),
+                totalIron.Round(),
+                totalSodium.Round(),
+                totalPrice,
+                records.Count,
+                recommendedCalories,
+                (recommendedCalories - totalCalories).Round(),
+                mealBreakdown
             );
-
-        return new DailySummaryResult(
-            date,
-            totalCalories.Round(),
-            totalProtein.Round(),
-            totalFat.Round(),
-            totalCarbohydrate.Round(),
-            totalIron.Round(),
-            totalSodium.Round(),
-            totalPrice,
-            records.Count,
-            recommendedCalories,
-            (recommendedCalories - totalCalories).Round(),
-            mealBreakdown
-        );
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("GetDailySummaryAsync failed: UserId={UserId}, Date={Date}", ex, userId, date);
+            return null;
+        }
     }
 
     private async Task UpdateDailySummaryAsync(

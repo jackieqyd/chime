@@ -1,32 +1,28 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using ChimeBackend.Application.Services;
-using Microsoft.Extensions.Logging;
 
 namespace ChimeBackend.Infrastructure.Services;
 
 public class WxService : IWxService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _appId;
-    private readonly string _appSecret;
-    private readonly ILogger<WxService> _logger;
+    private readonly ILogService _logger;
+    private readonly WeChatSettings _weChatSettings;
 
     public WxService(
         HttpClient httpClient,
-        ILogger<WxService> logger)
+        ILogService logger,
+        WeChatSettings weChatSettings)
     {
         _httpClient = httpClient;
-        _appId = Environment.GetEnvironmentVariable("WECHAT_APP_ID")
-            ?? throw new InvalidOperationException("WECHAT_APP_ID environment variable is not set");
-        _appSecret = Environment.GetEnvironmentVariable("WECHAT_APP_SECRET")
-            ?? throw new InvalidOperationException("WECHAT_APP_SECRET environment variable is not set");
         _logger = logger;
+        _weChatSettings = weChatSettings ?? throw new ArgumentNullException(nameof(weChatSettings));
     }
 
     public async Task<string> GetOpenIdAsync(string code, CancellationToken cancellationToken = default)
     {
-        var url = $"https://api.weixin.qq.com/sns/jscode2session?appid={_appId}&secret={_appSecret}&js_code={code}&grant_type=authorization_code";
+        var url = $"https://api.weixin.qq.com/sns/jscode2session?appid={_weChatSettings.AppId}&secret={_weChatSettings.AppSecret}&js_code={code}&grant_type=authorization_code";
 
         try
         {
@@ -44,7 +40,7 @@ public class WxService : IWxService
             {
                 var errcode = errcodeProp.GetInt32();
                 var errmsg = json.TryGetProperty("errmsg", out var errmsgProp) ? errmsgProp.GetString() : "unknown error";
-                _logger.LogError("WeChat API error: {errcode} - {errmsg}", errcode, errmsg);
+                _logger.Error("WeChat API error: {errcode} - {errmsg}", null, errcode, errmsg);
                 throw new InvalidOperationException($"WeChat API error: {errcode} - {errmsg}");
             }
 
@@ -52,7 +48,7 @@ public class WxService : IWxService
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
-            _logger.LogError(ex, "Failed to get openid from WeChat API");
+            _logger.Error("Failed to get openid from WeChat API", ex);
             throw new InvalidOperationException("Failed to get openid from WeChat API", ex);
         }
     }

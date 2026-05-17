@@ -10,12 +10,14 @@ namespace ChimeBackend.Tests;
 public class UserAppServiceTests
 {
     private readonly Mock<IUserRepository> _userRepoMock;
+    private readonly Mock<ILogService> _logServiceMock;
     private readonly UserAppService _sut;
 
     public UserAppServiceTests()
     {
         _userRepoMock = new Mock<IUserRepository>();
-        _sut = new UserAppService(_userRepoMock.Object);
+        _logServiceMock = new Mock<ILogService>();
+        _sut = new UserAppService(_userRepoMock.Object, _logServiceMock.Object);
     }
 
     [Fact]

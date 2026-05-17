@@ -10,13 +10,15 @@ public class FoodAppServiceTests
 {
     private readonly Mock<IFoodRepository> _foodRepoMock;
     private readonly Mock<IFoodCategoryRepository> _categoryRepoMock;
+    private readonly Mock<ILogService> _logServiceMock;
     private readonly FoodAppService _sut;
 
     public FoodAppServiceTests()
     {
         _foodRepoMock = new Mock<IFoodRepository>();
         _categoryRepoMock = new Mock<IFoodCategoryRepository>();
-        _sut = new FoodAppService(_foodRepoMock.Object, _categoryRepoMock.Object);
+        _logServiceMock = new Mock<ILogService>();
+        _sut = new FoodAppService(_foodRepoMock.Object, _categoryRepoMock.Object, _logServiceMock.Object);
     }
 
     [Fact]

@@ -13,6 +13,7 @@ public class FoodRecordAppServiceTests
     private readonly Mock<IFoodRecordRepository> _foodRecordRepoMock;
     private readonly Mock<IDailySummaryRepository> _dailySummaryRepoMock;
     private readonly Mock<IUserRepository> _userRepoMock;
+    private readonly Mock<ILogService> _logServiceMock;
     private readonly FoodRecordAppService _sut;
 
     public FoodRecordAppServiceTests()
@@ -20,10 +21,12 @@ public class FoodRecordAppServiceTests
         _foodRecordRepoMock = new Mock<IFoodRecordRepository>();
         _dailySummaryRepoMock = new Mock<IDailySummaryRepository>();
         _userRepoMock = new Mock<IUserRepository>();
+        _logServiceMock = new Mock<ILogService>();
         _sut = new FoodRecordAppService(
             _foodRecordRepoMock.Object,
             _dailySummaryRepoMock.Object,
-            _userRepoMock.Object
+            _userRepoMock.Object,
+            _logServiceMock.Object
         );
     }
 
